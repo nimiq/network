@@ -18,6 +18,8 @@ class Network {
     async _connect() {
         const { proxy, stub } = await Boruca.proxy(this._communicationTarget, this._communicationTarget.origin, NanoNetworkApi);
         stub.fire = (event, value) => proxy.fire(event, value);
+        await stub.init();
+        await stub.connect();
     }
 }
 
