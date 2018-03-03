@@ -8,10 +8,10 @@ class Network {
 
     async connect() {
         const eventServer = new EventServer();
-        const stub = RPC.Server(NanoNetworkApi);
-        stub.fire = (event, value) => eventServer.fire(event, value);
-        await stub.init();
-        await stub.connect();
+        const network = RPC.Server(NanoNetworkApi);
+        network.fire = (event, value) => eventServer.fire(event, value);
+        await network.init();
+        await network.connect();
     }
 }
 
