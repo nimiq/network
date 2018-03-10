@@ -10,7 +10,6 @@ class Network {
         const eventServer = new EventServer();
         const network = RPC.Server(NanoNetworkApi);
         network.fire = (event, value) => eventServer.fire(event, value);
-        await network.init();
         await network.connect();
     }
 }
