@@ -1,0 +1,23 @@
+{
+  "name": "nimiq-network",
+  "version": "1.0.0",
+  "description": "Nimiq Network",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "nimiq",
+    "network"
+  ],
+  "author": "Nimiq Foundation",
+  "license": "MIT",
+  "devDependencies": {
+    "gulp": "^3.9.1"
+  },
+  "dependencies": {
+    "babel": "^6.23.0",
+    "babel-preset-minify": "^0.3.0",
+    "gulp-babel": "^7.0.1"
+  }
+}
