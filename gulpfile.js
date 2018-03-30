@@ -1,13 +1,16 @@
 const gulp = require('gulp');
 
+const argv = require('yargs').argv;
+
 const NimiqBuild = require('../../meta/build-process/nimiq-base-gulpfile.js');
 
 gulp.task('build', () => NimiqBuild.build(
-    'network.js',
-    'dummy.css',
-    'network.html',
+    'src/network.js',
+    'src/dummy.css',
+    'src/network.html',
     [],
     `${__dirname}/../../`,
     'dist',
+    argv.config,
     true
 ));
