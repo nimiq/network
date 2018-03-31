@@ -17,6 +17,6 @@ function getConfig(host) {
     }
 }
 
-const host = window.location.hostname;
+const host = window.location.origin;
 
 export default getConfig(host);
