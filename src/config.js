@@ -2,7 +2,7 @@ function getConfig(host) {
     switch (host) {
         case 'https://network.nimiq.com':
             return {
-                mode: 'live'
+                mode: 'main'
             };
 
         case 'https://network.nimiq-testnet.com':
@@ -12,7 +12,7 @@ function getConfig(host) {
 
         default:
             return {
-                mode: 'bounty'
+                mode: 'dev'
             };
     }
 }
