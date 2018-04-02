@@ -6,7 +6,7 @@ gulp.task('build', () => NimiqBuild.build({
     jsEntry: 'src/network.js',
     htmlEntry: 'src/index.html',
     rootPath: `${__dirname}/../../`,
-    distPath: 'dist',
+    distPath: 'deployment-network/dist',
     minify: false
 }));
 
