@@ -1,6 +1,6 @@
 import { EventServer, RPC } from '/libraries/boruca-messaging/src/boruca.js';
 import NanoNetworkApi from '/libraries/nano-api/nano-network-api.js';
-import config from './config.js';
+import Config from '/libraries/secure-utils/config/config.js';
 
 class Network {
     constructor() {
@@ -9,7 +9,7 @@ class Network {
 
     async connect() {
         const eventServer = new EventServer();
-        const network = RPC.Server(NanoNetworkApi(config));
+        const network = RPC.Server(NanoNetworkApi(Config));
         network.fire = (event, value) => eventServer.fire(event, value);
 
         await network.connect();
