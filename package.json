@@ -1,24 +1,28 @@
 {
-  "name": "nimiq-network",
-  "version": "1.0.0",
+  "name": "@nimiq/network",
+  "version": "0.0.1",
   "description": "Nimiq Network",
-  "main": "index.html",
+  "main": "dist/network.umd.js",
+  "module": "dist/network.es.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "rollup -c"
   },
+  "files": [
+    "dist"
+  ],
   "keywords": [
     "nimiq",
     "network"
   ],
   "author": "Nimiq Foundation",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "devDependencies": {
-    "gulp": "^4.0.0"
+    "rollup": "^0.65.0",
+    "rollup-plugin-node-resolve": "^3.3.0"
   },
   "dependencies": {
-    "babel-core": "^6.23.0",
-    "babel-preset-minify": "^0.3.0",
-    "gulp-babel": "^7.0.1",
-    "yargs": "^11.0.0"
+    "@nimiq/nano-api": "^0.0.3",
+    "@nimiq/rpc-events": "^0.0.4",
+    "@nimiq/utils": "^0.0.2"
   }
 }

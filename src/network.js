@@ -1,19 +1,26 @@
-import { EventServer, RPC } from '/libraries/boruca-messaging/src/boruca.js';
-import NanoNetworkApi from '/libraries/nano-api/nano-network-api.js';
-import Config from '/libraries/secure-utils/config/config.js';
+import { EventServer } from '@nimiq/rpc-events';
+import { NanoNetworkApi } from '@nimiq/nano-api';
 
-class Network {
-    constructor() {
-        this.connect();
+export class Network extends NanoNetworkApi {
+    /**
+     * @param {{cdn:string, network:string}} config
+     */
+    constructor(config) {
+        super(config);
+        this._eventServer = new EventServer();
+
+        // Register RPC calls.
+        this._eventServer.onRequest('relayTransaction', ((state, arg) => this.relayTransaction(arg)));
+        this._eventServer.onRequest('getTransactionSize', ((state, arg) => this.getTransactionSize(arg)));
+        this._eventServer.onRequest('subscribe', ((state, arg) => this.subscribe(arg)));
+        this._eventServer.onRequest('getBalance', ((state, arg) => this.getBalance(arg)));
+        this._eventServer.onRequest('getAccountTypeString', ((state, arg) => this.getAccountTypeString(arg)));
+        this._eventServer.onRequest('requestTransactionHistory', ((state, arg) => this.requestTransactionHistory(arg)));
+        this._eventServer.onRequest('getGenesisVestingContracts', ((state, arg) => this.getGenesisVestingContracts(arg)));
+        this._eventServer.onRequest('removeTxFromMempool', ((state, arg) => this.removeTxFromMempool(arg)));
     }
 
-    async connect() {
-        const eventServer = new EventServer();
-        const network = RPC.Server(NanoNetworkApi(Config));
-        network.fire = (event, value) => eventServer.fire(event, value);
-
-        await network.connect();
+    fire(event, data) {
+        this._eventServer.fire(event, data);
     }
 }
-
-new Network();
