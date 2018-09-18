@@ -7,7 +7,9 @@
   "license": "Apache-2.0",
   "private": false,
   "devDependencies": {
+    "@nimiq/core-types": "^1.0.0",
     "ts-loader": "^5.1.0",
+    "tslint": "^5.11.0",
     "typescript": "^3.0.3",
     "webpack": "^4.17.2",
     "webpack-cli": "^3.1.0"
@@ -24,6 +26,8 @@
   },
   "homepage": "https://github.com/nimiq/network/client#readme",
   "scripts": {
-    "build": "webpack"
+    "build": "webpack",
+    "lint": "tslint 'src/*.ts'",
+    "lint-fix": "tslint --fix 'src/*.ts'"
   }
 }

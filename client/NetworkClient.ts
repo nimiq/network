@@ -1,31 +1,69 @@
-import { PostMessageRpcClient } from '@nimiq/rpc';
-import { EventClient } from '@nimiq/rpc-events';
+import { EventClient, EventCallback } from '@nimiq/rpc-events';  
 
 export default class NetworkClient {
     private static readonly DEFAULT_ENDPOINT = '../src';
 
     private readonly _endpoint: string;
-    private readonly _observable: Nimiq.Observable;
-    private _postMessageClient!: PostMessageRpcClient;
-    public eventClient!: EventClient;
+    private _eventClient!: EventClient;
     private $iframe!: HTMLIFrameElement;
-
-    constructor(endpoint: string = NetworkClient.DEFAULT_ENDPOINT) {
-        this._endpoint = endpoint;
-        this._observable = new Nimiq.Observable();
-    }
 
     private static getAllowedOrigin(endpoint: string) {
         // FIXME derive from endpoint url
         return '*';
     }
 
+    constructor(endpoint: string = NetworkClient.DEFAULT_ENDPOINT) {
+        this._endpoint = endpoint;
+    }
+
     public async init() {
         this.$iframe = await NetworkClient._createIframe(this._endpoint) as HTMLIFrameElement;
         const targetWindow = this.$iframe.contentWindow as Window;
+        this._eventClient = await EventClient.create(targetWindow, NetworkClient.getAllowedOrigin(this._endpoint));
+    }
 
-        this._postMessageClient = new PostMessageRpcClient(targetWindow, NetworkClient.getAllowedOrigin(this._endpoint));
-        this.eventClient = await EventClient.create(targetWindow);
+    public async on(event: string, callback: EventCallback) {
+        this._eventClient.on(event, callback);
+    }
+
+    public async off(event: string, callback: EventCallback) {
+        this._eventClient.off(event, callback);
+    }
+
+    public async relayTransaction(txObj: Nimiq.Transaction) {
+        return this._eventClient.call('relayTransaction', txObj);
+    }
+
+    public async getTransactionSize(txObj: Nimiq.Transaction) {
+        return this._eventClient.call('getTransactionSize', txObj);
+    }
+
+    public async connect() {
+        return this._eventClient.call('connect');
+    }
+
+    public async subscribe(addresses: string | string[]) {
+        return this._eventClient.call('subscribe', addresses);
+    }
+
+    public async getBalance(addresses: string | string[]): Promise<Map<string, number>> {
+        return this._eventClient.call('getBalance', addresses) as Promise<Map<string, number>>;
+    }
+
+    public async getAccountTypeString(address: string) {
+        return this._eventClient.call('getAccountTypeString', address);
+    }
+
+    public async requestTransactionHistory(addresses: string | string[], knownReceipts: Promise<Map<string, Nimiq.TransactionReceipt>>, fromHeight: number) {
+        return this._eventClient.call('requestTransactionHistory', addresses, knownReceipts, fromHeight);
+    }
+
+    public async getGenesisVestingContracts() {
+        return this._eventClient.call('getGenesisVestingContracts');
+    }
+
+    public async removeTxFromMempool(txObj: Nimiq.Transaction) {
+        return this._eventClient.call('removeTxFromMempool', txObj);
     }
 
     private static async _createIframe(src: string): Promise<HTMLIFrameElement> {
