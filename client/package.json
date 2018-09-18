@@ -1,0 +1,29 @@
+{
+  "name": "@nimiq/network-client",
+  "version": "0.0.1",
+  "main": "dist/main.js",
+  "repository": "https://github.com/nimiq/network",
+  "author": "Nimiq Network Ltd.",
+  "license": "Apache-2.0",
+  "private": false,
+  "devDependencies": {
+    "ts-loader": "^5.1.0",
+    "typescript": "^3.0.3",
+    "webpack": "^4.17.2",
+    "webpack-cli": "^3.1.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "Nimiq",
+    "Network"
+  ],
+  "bugs": {
+    "url": "https://github.com/nimiq/network/issues"
+  },
+  "homepage": "https://github.com/nimiq/network/client#readme",
+  "scripts": {
+    "build": "webpack"
+  }
+}
