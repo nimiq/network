@@ -1,16 +1,26 @@
-import { EventClient, EventCallback } from '@nimiq/rpc-events';  
+import { EventClient, EventCallback } from '@nimiq/rpc-events';
 
 export default class NetworkClient {
     private static readonly DEFAULT_ENDPOINT = '../src';
-
-    private readonly _endpoint: string;
-    private _eventClient!: EventClient;
-    private $iframe!: HTMLIFrameElement;
 
     private static getAllowedOrigin(endpoint: string) {
         // FIXME derive from endpoint url
         return '*';
     }
+
+    private static async _createIframe(src: string): Promise<HTMLIFrameElement> {
+        const $iframe = document.createElement('iframe');
+        const promise = new Promise<HTMLIFrameElement>((resolve) =>
+            $iframe.addEventListener('load', () => resolve($iframe)));
+        $iframe.src = src;
+        $iframe.name = 'network';
+        document.body.appendChild($iframe);
+        return promise;
+    }
+
+    private readonly _endpoint: string;
+    private _eventClient!: EventClient;
+    private $iframe!: HTMLIFrameElement;
 
     constructor(endpoint: string = NetworkClient.DEFAULT_ENDPOINT) {
         this._endpoint = endpoint;
@@ -54,7 +64,11 @@ export default class NetworkClient {
         return this._eventClient.call('getAccountTypeString', address);
     }
 
-    public async requestTransactionHistory(addresses: string | string[], knownReceipts: Promise<Map<string, Nimiq.TransactionReceipt>>, fromHeight: number) {
+    public async requestTransactionHistory(
+        addresses: string | string[],
+        knownReceipts: Promise<Map<string, Nimiq.TransactionReceipt>>,
+        fromHeight: number,
+    ) {
         return this._eventClient.call('requestTransactionHistory', addresses, knownReceipts, fromHeight);
     }
 
@@ -64,14 +78,5 @@ export default class NetworkClient {
 
     public async removeTxFromMempool(txObj: Nimiq.Transaction) {
         return this._eventClient.call('removeTxFromMempool', txObj);
-    }
-
-    private static async _createIframe(src: string): Promise<HTMLIFrameElement> {
-        const $iframe = document.createElement('iframe');
-        const promise = new Promise<HTMLIFrameElement>(resolve => $iframe.addEventListener('load', () => resolve($iframe)));
-        $iframe.src = src;
-        $iframe.name = 'network';
-        document.body.appendChild($iframe);
-        return promise;
     }
 }
