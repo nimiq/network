@@ -1,21 +1,6 @@
 module.exports = {
-  entry: './Demo.ts',
-  module: {
-    rules: [
-      {
-        test: /\.ts$/,
-        exclude: /node_modules/,
-        use: {
-          loader: "ts-loader"
-        }
-      }
-    ]
-  },
-  resolve: {
-    extensions: [ '.ts', '.tsx', '.js' ]
-  },
-  mode: 'development',
+  entry: './src/demo.js',
   output: {
-    filename: 'Demo.js',
+    filename: './dist/demo.js',
   }
 };
