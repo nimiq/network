@@ -1,0 +1,31 @@
+{
+  "name": "network-client-demo",
+  "version": "1.0.0",
+  "description": "A sample app using Nimiq network client",
+  "main": "demo.js",
+  "scripts": {
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nimiq/network.git"
+  },
+  "keywords": [
+    "Nimiq",
+    "network",
+    "demo"
+  ],
+  "author": "Nimiq",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/nimiq/network/issues"
+  },
+  "homepage": "https://github.com/nimiq/network#readme",
+  "dependencies": {
+    "@nimiq/network-client": "^0.0.1"
+  },
+  "devDependencies": {
+    "ts-loader": "^5.1.1",
+    "webpack": "^4.19.1"
+  }
+}

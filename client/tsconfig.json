@@ -30,7 +30,7 @@
   },
   "include": [
     "types/Nimiq.d.ts",
-    "*.ts"
+    "src/*.ts"
   ],
   "exclude": [
     "node_modules"
