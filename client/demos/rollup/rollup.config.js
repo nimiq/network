@@ -6,7 +6,6 @@ export default [
     {
         input: 'src/demo.js',
         output: {
-            file: 'dist/demo.umd.js',
             format: 'umd',
             name: 'Demo',
             globals: {
