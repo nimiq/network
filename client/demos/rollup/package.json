@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/nimiq/network#readme",
   "dependencies": {
-    "@nimiq/network-client": "^0.0.1"
+    "@nimiq/network-client": "../../"
   },
   "devDependencies": {
     "rollup": "^0.66.0",

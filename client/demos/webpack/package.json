@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/nimiq/network#readme",
   "dependencies": {
-    "@nimiq/network-client": "^0.0.1"
+    "@nimiq/network-client": "../../"
   },
   "devDependencies": {
     "ts-loader": "^5.1.1",
