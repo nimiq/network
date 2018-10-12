@@ -1,11 +1,11 @@
 import { EventClient, EventCallback } from '@nimiq/rpc-events';
 
 export default class NetworkClient {
-    private static readonly DEFAULT_ENDPOINT = '../src';
+    private static readonly DEFAULT_ENDPOINT = 'https://network.nimiq-testnet.com';
 
     private static getAllowedOrigin(endpoint: string) {
-        // FIXME derive from endpoint url
-        return '*';
+        const url = new URL(endpoint);
+        return url.origin;
     }
 
     private static async _createIframe(src: string): Promise<HTMLIFrameElement> {
