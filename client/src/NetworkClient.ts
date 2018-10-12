@@ -13,7 +13,8 @@ export default class NetworkClient {
         const promise = new Promise<HTMLIFrameElement>((resolve) =>
             $iframe.addEventListener('load', () => resolve($iframe)));
         $iframe.src = src;
-        $iframe.name = 'network';
+        $iframe.name = 'NimiqNetwork';
+        $iframe.style.display = 'none';
         document.body.appendChild($iframe);
         return promise;
     }
