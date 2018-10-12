@@ -48,9 +48,12 @@ export default class NetworkClient {
         return this._eventClient.call('getTransactionSize', txObj);
     }
 
-    public async connect() {
-        return this._eventClient.call('connect');
-    }
+    // 'connect' is not registered to the RPC server in network.js,
+    // it is only meant to be used internally by autostart.js
+    //
+    // public async connect() {
+    //     return this._eventClient.call('connect');
+    // }
 
     public async subscribe(addresses: string | string[]) {
         return this._eventClient.call('subscribe', addresses);
