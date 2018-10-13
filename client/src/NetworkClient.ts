@@ -28,6 +28,7 @@ export default class NetworkClient {
     }
 
     public async init() {
+        if (this._eventClient) return;
         this.$iframe = await NetworkClient._createIframe(this._endpoint) as HTMLIFrameElement;
         const targetWindow = this.$iframe.contentWindow as Window;
         this._eventClient = await EventClient.create(targetWindow, NetworkClient.getAllowedOrigin(this._endpoint));
@@ -41,11 +42,11 @@ export default class NetworkClient {
         this._eventClient.off(event, callback);
     }
 
-    public async relayTransaction(txObj: Nimiq.Transaction) {
+    public async relayTransaction(txObj: object) {
         return this._eventClient.call('relayTransaction', txObj);
     }
 
-    public async getTransactionSize(txObj: Nimiq.Transaction) {
+    public async getTransactionSize(txObj: object) {
         return this._eventClient.call('getTransactionSize', txObj);
     }
 
@@ -69,9 +70,9 @@ export default class NetworkClient {
     }
 
     public async requestTransactionHistory(
-        addresses: string | string[],
-        knownReceipts: Promise<Map<string, Nimiq.TransactionReceipt>>,
-        fromHeight: number,
+        addresses: string | string[], // userfriendly addresses
+        knownReceipts: Map<string, Map<string, string>>, // Map<address (userfriendly), Map<txhash (base64), blockhash (base64)>>
+        fromHeight?: number,
     ) {
         return this._eventClient.call('requestTransactionHistory', addresses, knownReceipts, fromHeight);
     }
@@ -80,7 +81,7 @@ export default class NetworkClient {
         return this._eventClient.call('getGenesisVestingContracts');
     }
 
-    public async removeTxFromMempool(txObj: Nimiq.Transaction) {
+    public async removeTxFromMempool(txObj: object) {
         return this._eventClient.call('removeTxFromMempool', txObj);
     }
 }

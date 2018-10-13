@@ -8,6 +8,9 @@
   "author": "Nimiq Network Ltd.",
   "license": "Apache-2.0",
   "private": false,
+  "dependencies": {
+    "@nimiq/rpc-events": "^0.0.4"
+  },
   "devDependencies": {
     "@nimiq/core-types": "^1.0.0",
     "rollup": "^0.66.0",
