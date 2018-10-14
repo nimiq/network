@@ -1,6 +1,17 @@
 import { EventClient, EventCallback } from '@nimiq/rpc-events';
 
-export default class NetworkClient {
+export type PlainTransaction = {
+    sender: string,
+    senderPubKey: Uint8Array,
+    recipient: string,
+    value: number,
+    fee: number,
+    validityStartHeight: number,
+    signature: Uint8Array,
+    extraData?: string | Uint8Array,
+}
+
+export class NetworkClient {
     private static readonly DEFAULT_ENDPOINT = 'https://network.nimiq-testnet.com';
 
     private static getAllowedOrigin(endpoint: string) {
@@ -42,11 +53,11 @@ export default class NetworkClient {
         this._eventClient.off(event, callback);
     }
 
-    public async relayTransaction(txObj: object) {
+    public async relayTransaction(txObj: PlainTransaction) {
         return this._eventClient.call('relayTransaction', txObj);
     }
 
-    public async getTransactionSize(txObj: object) {
+    public async getTransactionSize(txObj: PlainTransaction) {
         return this._eventClient.call('getTransactionSize', txObj);
     }
 
@@ -81,7 +92,7 @@ export default class NetworkClient {
         return this._eventClient.call('getGenesisVestingContracts');
     }
 
-    public async removeTxFromMempool(txObj: object) {
+    public async removeTxFromMempool(txObj: PlainTransaction) {
         return this._eventClient.call('removeTxFromMempool', txObj);
     }
 }
