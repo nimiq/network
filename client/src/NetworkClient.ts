@@ -35,7 +35,10 @@ export type PlainVestingContract = {
 }
 
 export class NetworkClient {
-    private static readonly DEFAULT_ENDPOINT = 'https://network.nimiq-testnet.com';
+    private static readonly DEFAULT_ENDPOINT =
+        window.location.origin === 'https://accounts.nimiq.com' ? 'https://network-next.nimiq.com'
+        : window.location.origin === 'https://accounts.nimiq-testnet.com' ? 'https://network-next.nimiq-testnet.com'
+        : 'http://localhost:5000';
 
     private static getAllowedOrigin(endpoint: string): string {
         const url = new URL(endpoint);
