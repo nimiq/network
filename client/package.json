@@ -1,0 +1,37 @@
+{
+  "name": "@nimiq/network-client",
+  "version": "0.0.5",
+  "main": "dist/NetworkClient.umd.js",
+  "module": "dist/NetworkClient.es.js",
+  "types": "types/index.d.ts",
+  "repository": "https://github.com/nimiq/network",
+  "author": "Nimiq Network Ltd.",
+  "license": "Apache-2.0",
+  "private": false,
+  "dependencies": {
+    "@nimiq/rpc-events": "^0.0.5"
+  },
+  "devDependencies": {
+    "@nimiq/core-types": "^1.0.0",
+    "rollup": "^0.66.0",
+    "tslint": "^5.11.0",
+    "typescript": "^3.0.3"
+  },
+  "files": [
+    "dist",
+    "types"
+  ],
+  "keywords": [
+    "Nimiq",
+    "Network"
+  ],
+  "bugs": {
+    "url": "https://github.com/nimiq/network/issues"
+  },
+  "homepage": "https://github.com/nimiq/network/client#readme",
+  "scripts": {
+    "build": "tsc && rollup -c",
+    "lint": "tslint 'src/*.ts'",
+    "lint-fix": "tslint --fix 'src/*.ts'"
+  }
+}

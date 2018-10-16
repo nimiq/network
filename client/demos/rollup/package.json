@@ -1,0 +1,32 @@
+{
+  "name": "network-client-demo-rollup",
+  "version": "1.0.0",
+  "description": "A sample app using Nimiq network client and rollup",
+  "main": "demo.js",
+  "scripts": {
+    "build": "rollup -c"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nimiq/network.git"
+  },
+  "keywords": [
+    "Nimiq",
+    "network",
+    "demo",
+    "rollup"
+  ],
+  "author": "Nimiq",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/nimiq/network/issues"
+  },
+  "homepage": "https://github.com/nimiq/network#readme",
+  "dependencies": {
+    "@nimiq/network-client": "../../"
+  },
+  "devDependencies": {
+    "rollup": "^0.66.0",
+    "rollup-plugin-node-resolve": "^3.4.0"
+  }
+}
