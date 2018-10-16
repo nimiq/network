@@ -35,7 +35,7 @@ export default [
     {
         input: 'src/autorun.js',
         output: {
-            file: 'nimiq-dist/network.js',
+            file: `nimiq-dist/network.${process.env._HASH ? `${process.env._HASH}.` : ''}js`,
             format: 'iife',
             name: 'Network'
         },

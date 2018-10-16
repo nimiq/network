@@ -4,5 +4,5 @@ tmp
 deployment-network
 .idea
 dist
+nimiq-dist
 node_modules
-nimiq-dist/network.js

@@ -5,7 +5,7 @@
   "main": "dist/network.umd.js",
   "module": "dist/network.es.js",
   "scripts": {
-    "build": "rollup -c"
+    "build": "export _HASH=$(git rev-parse --short=8 HEAD) && rm nimiq-dist/network*.js ||: && rm nimiq-dist/index.html ||: && yarn rollup -c && sed \"s/src=\\\"autorun.js\\\" type=\\\"module\\\"/src=\\\"network.`echo $_HASH`.js\\\"/\" src/index.html > nimiq-dist/index.html"
   },
   "files": [
     "dist"
