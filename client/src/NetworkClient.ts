@@ -11,10 +11,33 @@ export type PlainTransaction = {
     extraData?: string | Uint8Array,
 }
 
+export type DetailedPlainTransaction = {
+    sender: string,
+    recipient: string,
+    value: number,
+    fee: number,
+    extraData: Uint8Array,
+    hash: string,
+    blockHeight: number,
+    blockHash: string,
+    timestamp: number,
+    validityStartHeight: number,
+}
+
+export type PlainVestingContract = {
+    address: string,
+    // balance: number,
+    owner: string,
+    start: number,
+    stepAmount: number,
+    stepBlocks: number,
+    totalAmount: number,
+}
+
 export class NetworkClient {
     private static readonly DEFAULT_ENDPOINT = 'https://network.nimiq-testnet.com';
 
-    private static getAllowedOrigin(endpoint: string) {
+    private static getAllowedOrigin(endpoint: string): string {
         const url = new URL(endpoint);
         return url.origin;
     }
@@ -53,22 +76,22 @@ export class NetworkClient {
         this._eventClient.off(event, callback);
     }
 
-    public async relayTransaction(txObj: PlainTransaction) {
+    public async relayTransaction(txObj: PlainTransaction): Promise<void> {
         return this._eventClient.call('relayTransaction', txObj);
     }
 
-    public async getTransactionSize(txObj: PlainTransaction) {
+    public async getTransactionSize(txObj: PlainTransaction): Promise<number> {
         return this._eventClient.call('getTransactionSize', txObj);
     }
 
     // 'connect' is not registered to the RPC server in network.js,
     // it is only meant to be used internally by autostart.js
     //
-    // public async connect() {
+    // public async connect(): Promise<void> {
     //     return this._eventClient.call('connect');
     // }
 
-    public async subscribe(addresses: string | string[]) {
+    public async subscribe(addresses: string | string[]): Promise<void> {
         return this._eventClient.call('subscribe', addresses);
     }
 
@@ -76,7 +99,7 @@ export class NetworkClient {
         return this._eventClient.call('getBalance', addresses) as Promise<Map<string, number>>;
     }
 
-    public async getAccountTypeString(address: string) {
+    public async getAccountTypeString(address: string): Promise<string|false> {
         return this._eventClient.call('getAccountTypeString', address);
     }
 
@@ -84,15 +107,19 @@ export class NetworkClient {
         addresses: string | string[], // userfriendly addresses
         knownReceipts: Map<string, Map<string, string>>, // Map<address (userfriendly), Map<txhash (base64), blockhash (base64)>>
         fromHeight?: number,
-    ) {
+    ): Promise<{
+        newTransactions: DetailedPlainTransaction[],
+        removedTransactions: string[],
+        unresolvedTransactions: Nimiq.TransactionReceipt[]
+    }> {
         return this._eventClient.call('requestTransactionHistory', addresses, knownReceipts, fromHeight);
     }
 
-    public async getGenesisVestingContracts() {
+    public async getGenesisVestingContracts(): Promise<PlainVestingContract[]> {
         return this._eventClient.call('getGenesisVestingContracts');
     }
 
-    public async removeTxFromMempool(txObj: PlainTransaction) {
+    public async removeTxFromMempool(txObj: PlainTransaction): Promise<void> {
         return this._eventClient.call('removeTxFromMempool', txObj);
     }
 }
