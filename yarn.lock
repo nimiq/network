@@ -9,17 +9,17 @@
   dependencies:
     "@nimiq/utils" "^0.0.2"
 
-"@nimiq/rpc-events@^0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@nimiq/rpc-events/-/rpc-events-0.0.4.tgz#b1bea730af8200bc57ec2140a48b23de3c7b421a"
-  integrity sha512-nSGI7nMxudr1+C2S/QCRSm2+5cIV/qd44HwWWbQq87hP7j/VrevGKjgbl3z+k3OfHafdVUJoiD6FqTuxgLNJxQ==
+"@nimiq/rpc-events@^0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@nimiq/rpc-events/-/rpc-events-0.0.5.tgz#7face10c875956aeee8f9b44e2184bcde5b6b203"
+  integrity sha512-eXZjpUgcJf6M4QBQ3ZcIpw5ZOcbVxdalmR0Q9UuWXXHlDSDrfrLcioNWCOm0FKD71mfluoR9SeLZoC72JBxNQw==
   dependencies:
-    "@nimiq/rpc" "^0.0.8"
+    "@nimiq/rpc" "^0.0.11"
 
-"@nimiq/rpc@^0.0.8":
-  version "0.0.8"
-  resolved "https://registry.yarnpkg.com/@nimiq/rpc/-/rpc-0.0.8.tgz#699c9593bf3e9ed10e53555dfae533e1f188c3e0"
-  integrity sha512-EywZIZ8vIxwY1iWit//IruCVSeCWwSsxG52oYLIURXfPCR9L/Bb4dh1khTJRFPZqCD5kFs7XJNv0manS2yoNoQ==
+"@nimiq/rpc@^0.0.11":
+  version "0.0.11"
+  resolved "https://registry.yarnpkg.com/@nimiq/rpc/-/rpc-0.0.11.tgz#7230365640663827fb115e0d6456222de3b1c5e3"
+  integrity sha512-aSTQwsTeSH46ubRDHqB7x82Alq5a9PlMYJUgDVd/4ET1dMTLm+4sjaFiWho3+SjG2n5/v09XKlDUBFDaENYT6w==
 
 "@nimiq/utils@^0.0.2":
   version "0.0.2"

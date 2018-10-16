@@ -9,7 +9,7 @@
   "license": "Apache-2.0",
   "private": false,
   "dependencies": {
-    "@nimiq/rpc-events": "^0.0.4"
+    "@nimiq/rpc-events": "^0.0.5"
   },
   "devDependencies": {
     "@nimiq/core-types": "^1.0.0",
