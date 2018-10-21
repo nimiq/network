@@ -1,6 +1,6 @@
 {
   "name": "@nimiq/network-client",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "main": "dist/NetworkClient.umd.js",
   "module": "dist/NetworkClient.es.js",
   "types": "types/index.d.ts",
