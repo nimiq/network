@@ -15,7 +15,10 @@ export class Network extends NanoNetworkApi {
         this._eventServer.onRequest('subscribe', ((state, arg) => this.subscribe(arg)));
         this._eventServer.onRequest('getBalance', ((state, arg) => this.getBalance(arg)));
         this._eventServer.onRequest('getAccountTypeString', ((state, arg) => this.getAccountTypeString(arg)));
-        this._eventServer.onRequest('requestTransactionHistory', ((state, arg) => this.requestTransactionHistory(arg)));
+        this._eventServer.onRequest(
+            'requestTransactionHistory',
+            ((state, addresses, knownReceipts, fromHeight) => this.requestTransactionHistory(addresses, knownReceipts, fromHeight)),
+        );
         this._eventServer.onRequest('getGenesisVestingContracts', ((state, arg) => this.getGenesisVestingContracts(arg)));
         this._eventServer.onRequest('removeTxFromMempool', ((state, arg) => this.removeTxFromMempool(arg)));
     }
