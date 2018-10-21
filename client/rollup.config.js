@@ -1,4 +1,6 @@
 // rollup.config.js
+import resolve from 'rollup-plugin-node-resolve';
+
 export default [
     {
         input: 'build/NetworkClient.js',
@@ -28,5 +30,17 @@ export default [
             globals: { '@nimiq/rpc-events': 'rpc-events' }
         },
         external: [ '@nimiq/rpc-events' ]
+    },
+    {
+        input: 'build/NetworkClient.js',
+        output: {
+            file: 'dist/NetworkClient.standalone.es.js',
+            format: 'es',
+            name: 'NetworkClient',
+            globals: { '@nimiq/rpc-events': 'rpc-events' }
+        },
+        plugins: [
+            resolve()
+        ]
     }
 ];
