@@ -34,6 +34,18 @@ export default [
     {
         input: 'build/NetworkClient.js',
         output: {
+            file: 'dist/NetworkClient.standalone.umd.js',
+            format: 'umd',
+            name: 'NetworkClient',
+            globals: { '@nimiq/rpc-events': 'rpc-events' }
+        },
+        plugins: [
+            resolve()
+        ]
+    },
+    {
+        input: 'build/NetworkClient.js',
+        output: {
             file: 'dist/NetworkClient.standalone.es.js',
             format: 'es',
             name: 'NetworkClient',
