@@ -26,7 +26,6 @@ export type DetailedPlainTransaction = {
 
 export type PlainVestingContract = {
     address: string,
-    // balance: number,
     owner: string,
     start: number,
     stepAmount: number,
@@ -36,9 +35,9 @@ export type PlainVestingContract = {
 
 export class NetworkClient {
     private static readonly DEFAULT_ENDPOINT =
-        window.location.origin === 'https://accounts.nimiq.com' ? 'https://network-next.nimiq.com'
-        : window.location.origin === 'https://accounts.nimiq-testnet.com' ? 'https://network-next.nimiq-testnet.com'
-        : 'http://localhost:5000';
+        window.location.origin === 'https://accounts.nimiq.com'
+            ? 'https://network-next.nimiq.com'
+            : 'https://network-next.nimiq-testnet.com';
 
     private static getAllowedOrigin(endpoint: string): string {
         const url = new URL(endpoint);
@@ -86,13 +85,6 @@ export class NetworkClient {
     public async getTransactionSize(txObj: PlainTransaction): Promise<number> {
         return this._eventClient.call('getTransactionSize', txObj);
     }
-
-    // 'connect' is not registered to the RPC server in network.js,
-    // it is only meant to be used internally by autostart.js
-    //
-    // public async connect(): Promise<void> {
-    //     return this._eventClient.call('connect');
-    // }
 
     public async subscribe(addresses: string | string[]): Promise<void> {
         return this._eventClient.call('subscribe', addresses);
