@@ -1,36 +1,36 @@
 import { EventClient, EventCallback } from '@nimiq/rpc-events';
 
-export type PlainTransaction = {
-    sender: string,
-    senderPubKey: Uint8Array,
-    recipient: string,
-    value: number, // in NIM
-    fee: number, // IN NIM
-    validityStartHeight: number,
-    signature: Uint8Array,
-    extraData?: string | Uint8Array,
+export interface PlainTransaction {
+    sender: string;
+    senderPubKey: Uint8Array;
+    recipient: string;
+    value: number; // in NIM
+    fee: number; // IN NIM
+    validityStartHeight: number;
+    signature: Uint8Array;
+    extraData?: string | Uint8Array;
 }
 
-export type DetailedPlainTransaction = {
-    sender: string,
-    recipient: string,
-    value: number, // in NIM
-    fee: number, // IN NIM
-    extraData: Uint8Array,
-    hash: string, // base64
-    blockHeight: number,
-    blockHash?: string, // base64
-    timestamp: number,
-    validityStartHeight: number,
+export interface DetailedPlainTransaction {
+    sender: string;
+    recipient: string;
+    value: number; // in NIM
+    fee: number; // IN NIM
+    extraData: Uint8Array;
+    hash: string; // base64
+    blockHeight: number;
+    blockHash?: string; // base64
+    timestamp: number;
+    validityStartHeight: number;
 }
 
-export type PlainVestingContract = {
-    address: string,
-    owner: string,
-    start: number,
-    stepAmount: number,
-    stepBlocks: number,
-    totalAmount: number,
+export interface PlainVestingContract {
+    address: string;
+    owner: string;
+    start: number;
+    stepAmount: number;
+    stepBlocks: number;
+    totalAmount: number;
 }
 
 class NetworkClient {
@@ -177,12 +177,13 @@ class NetworkClient {
 
     public async requestTransactionHistory(
         addresses: string | string[], // userfriendly addresses
-        knownReceipts: Map<string, Map<string, string>>, // Map<address (userfriendly), Map<txhash (base64), blockhash (base64)>>
+        // Map<address (userfriendly), Map<txhash (base64), blockhash (base64)>>
+        knownReceipts: Map<string, Map<string, string>>,
         fromHeight?: number,
     ): Promise<{
         newTransactions: DetailedPlainTransaction[],
         removedTransactions: string[],
-        unresolvedTransactions: Nimiq.TransactionReceipt[]
+        unresolvedTransactions: Nimiq.TransactionReceipt[],
     }> {
         return this._eventClient.call('requestTransactionHistory', addresses, knownReceipts, fromHeight);
     }
@@ -198,8 +199,8 @@ class NetworkClient {
     private _evictCachedTransactions() {
         const CACHE_DURATION = 20;
         // purge expired transactions
-        for (let i=0; i<this._expiredTransactions.length; ++i) {
-            const [expiredAt,] = this._expiredTransactions[i];
+        for (let i = 0; i < this._expiredTransactions.length; ++i) {
+            const [expiredAt] = this._expiredTransactions[i];
             if (expiredAt + CACHE_DURATION <= this.headInfo.height) {
                 this._expiredTransactions.splice(i, 1);
                 --i;
@@ -220,7 +221,7 @@ class NetworkClient {
     }
 }
 
-namespace NetworkClient {
+namespace NetworkClient { // tslint:disable-line:no-namespace
     export enum Events {
         API_READY = 'nimiq-api-ready',
         API_FAIL = 'nimiq-api-fail',
