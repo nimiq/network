@@ -4,8 +4,8 @@ export type PlainTransaction = {
     sender: string,
     senderPubKey: Uint8Array,
     recipient: string,
-    value: number,
-    fee: number,
+    value: number, // in NIM
+    fee: number, // IN NIM
     validityStartHeight: number,
     signature: Uint8Array,
     extraData?: string | Uint8Array,
@@ -14,12 +14,12 @@ export type PlainTransaction = {
 export type DetailedPlainTransaction = {
     sender: string,
     recipient: string,
-    value: number,
-    fee: number,
+    value: number, // in NIM
+    fee: number, // IN NIM
     extraData: Uint8Array,
-    hash: string,
+    hash: string, // base64
     blockHeight: number,
-    blockHash: string,
+    blockHash?: string, // base64
     timestamp: number,
     validityStartHeight: number,
 }
@@ -33,7 +33,7 @@ export type PlainVestingContract = {
     totalAmount: number,
 }
 
-export class NetworkClient {
+class NetworkClient {
     private static readonly DEFAULT_ENDPOINT =
         window.location.origin === 'https://accounts.nimiq.com'
             ? 'https://network-next.nimiq.com'
@@ -58,6 +58,17 @@ export class NetworkClient {
     private readonly _endpoint: string;
     private _eventClient!: EventClient;
     private $iframe!: HTMLIFrameElement;
+    private _apiLoadingState: 'not-started' | 'ready' | 'failed' = 'not-started';
+    private _consensus: 'syncing' | 'established' | 'lost' = 'syncing';
+    private _peerCount: number = 0;
+    private _headInfo: { height: number, globalHashrate: number } = { height: 0, globalHashrate: 0 };
+    private _balances: Map<string, number> = new Map<string, number>();
+    private _pendingTransactions: Map<string, Partial<DetailedPlainTransaction>>
+        = new Map<string, Partial<DetailedPlainTransaction>>();
+    private _expiredTransactions: Array<[number, string]> = [];
+    private _minedTransactions: Map<string, DetailedPlainTransaction> = new Map<string, DetailedPlainTransaction>();
+    private _relayedTransactions: Map<string, Partial<DetailedPlainTransaction>> =
+        new Map<string, Partial<DetailedPlainTransaction>>();
 
     constructor(endpoint: string = NetworkClient.DEFAULT_ENDPOINT) {
         this._endpoint = endpoint;
@@ -68,14 +79,80 @@ export class NetworkClient {
         this.$iframe = await NetworkClient._createIframe(this._endpoint) as HTMLIFrameElement;
         const targetWindow = this.$iframe.contentWindow as Window;
         this._eventClient = await EventClient.create(targetWindow, NetworkClient.getAllowedOrigin(this._endpoint));
+
+        this.on(NetworkClient.Events.API_READY, () => this._apiLoadingState = 'ready');
+        this.on(NetworkClient.Events.API_FAIL, () => this._apiLoadingState = 'failed');
+        this.on(NetworkClient.Events.CONSENSUS_SYNCING, () => this._consensus = 'syncing');
+        this.on(NetworkClient.Events.CONSENSUS_ESTABLISHED, () => this._consensus = 'established');
+        this.on(NetworkClient.Events.CONSENSUS_LOST, () => this._consensus = 'lost');
+        this.on(NetworkClient.Events.PEERS_CHANGED, (peerCount: number) => this._peerCount = peerCount);
+        this.on(NetworkClient.Events.BALANCES_CHANGED,
+            (balances: Map<string, number>) => this._balances = balances);
+        this.on(NetworkClient.Events.TRANSACTION_PENDING,
+            (tx: Partial<DetailedPlainTransaction>) => this._pendingTransactions.set(tx.hash!, tx));
+        this.on(NetworkClient.Events.TRANSACTION_EXPIRED, (txHash: string) => {
+            this._expiredTransactions.push([this.headInfo.height, txHash]);
+            this._pendingTransactions.delete(txHash);
+        });
+        this.on(NetworkClient.Events.TRANSACTION_MINED, (tx: DetailedPlainTransaction) => {
+            this._minedTransactions.set(tx.hash, tx);
+            this._pendingTransactions.delete(tx.hash);
+        });
+        this.on(NetworkClient.Events.TRANSACTION_RELAYED, (tx: Partial<DetailedPlainTransaction>) => {
+            tx.blockHeight = this.headInfo.height;
+            this._relayedTransactions.set(tx.hash!, tx);
+        });
+        this.on(NetworkClient.Events.HEAD_CHANGE, (headInfo: { height: number, globalHashrate: number}) => {
+            this._headInfo = headInfo;
+            this._evictCachedTransactions();
+        });
     }
 
-    public async on(event: string, callback: EventCallback) {
+    public async on(event: NetworkClient.Events, callback: EventCallback) {
         this._eventClient.on(event, callback);
     }
 
-    public async off(event: string, callback: EventCallback) {
+    public async off(event: NetworkClient.Events, callback: EventCallback) {
         this._eventClient.off(event, callback);
+    }
+
+    public get apiLoadingState(): 'not-started' | 'ready' | 'failed' {
+        return this._apiLoadingState;
+    }
+
+    public get consensus(): 'syncing' | 'established' | 'lost' {
+        return this._consensus;
+    }
+
+    public get peerCount(): number {
+        return this._peerCount;
+    }
+
+    public get headInfo(): { height: number, globalHashrate: number } {
+        return this._headInfo;
+    }
+
+    public get balances(): Map<string, number> {
+        return this._balances;
+    }
+
+    public get pendingTransactions(): Iterable<Partial<DetailedPlainTransaction>> {
+        return this._pendingTransactions.values();
+    }
+
+    public get minedTransactions(): Iterable<DetailedPlainTransaction> {
+        return this._minedTransactions.values();
+    }
+
+    public get relayedTransactions(): Iterable<Partial<DetailedPlainTransaction>> {
+        return this._relayedTransactions.values();
+    }
+
+    /**
+     * @returns base64 transaction hashes
+     */
+    public get expiredTransactions(): Iterable<string> {
+        return this._expiredTransactions.map(([height, txHash]) => txHash);
     }
 
     public async relayTransaction(txObj: PlainTransaction): Promise<void> {
@@ -117,4 +194,47 @@ export class NetworkClient {
     public async removeTxFromMempool(txObj: PlainTransaction): Promise<void> {
         return this._eventClient.call('removeTxFromMempool', txObj);
     }
+
+    private _evictCachedTransactions() {
+        const CACHE_DURATION = 20;
+        // purge expired transactions
+        for (let i=0; i<this._expiredTransactions.length; ++i) {
+            const [expiredAt,] = this._expiredTransactions[i];
+            if (expiredAt + CACHE_DURATION <= this.headInfo.height) {
+                this._expiredTransactions.splice(i, 1);
+                --i;
+            }
+        }
+        // purge mined transactions
+        for (const tx of this._minedTransactions.values()) {
+            if (tx.blockHeight + CACHE_DURATION <= this.headInfo.height) {
+                this._minedTransactions.delete(tx.hash);
+            }
+        }
+        // purge relayed transactions
+        for (const tx of this._relayedTransactions.values()) {
+            if (tx.blockHeight! + CACHE_DURATION <= this.headInfo.height) {
+                this._relayedTransactions.delete(tx.hash!);
+            }
+        }
+    }
 }
+
+namespace NetworkClient {
+    export enum Events {
+        API_READY = 'nimiq-api-ready',
+        API_FAIL = 'nimiq-api-fail',
+        CONSENSUS_SYNCING = 'nimiq-consensus-syncing',
+        CONSENSUS_ESTABLISHED = 'nimiq-consensus-established',
+        CONSENSUS_LOST = 'nimiq-consensus-lost',
+        PEERS_CHANGED = 'nimiq-peer-count',
+        BALANCES_CHANGED = 'nimiq-balances',
+        TRANSACTION_PENDING = 'nimiq-transaction-pending',
+        TRANSACTION_EXPIRED = 'nimiq-transaction-expired',
+        TRANSACTION_MINED = 'nimiq-transaction-mined',
+        TRANSACTION_RELAYED = 'nimiq-transaction-relayed',
+        HEAD_CHANGE = 'nimiq-head-change',
+    }
+}
+
+export { NetworkClient };
