@@ -36,19 +36,19 @@ export type PlainVestingContract = {
 // tslint:enable:interface-over-type-literal
 
 class NetworkClient {
-    public static get Instance(): NetworkClient {
-        return NetworkClient._instance || (NetworkClient._instance = new NetworkClient());
+    public static createInstance(endPoint: string = NetworkClient.DEFAULT_ENDPOINT) {
+        if (NetworkClient._instance) throw new Error('NetworkClient already instantiated.');
+        const networkClient = new NetworkClient(endPoint);
+        NetworkClient._instance = networkClient;
+        return networkClient;
     }
 
     public static hasInstance() {
         return !!NetworkClient._instance;
     }
 
-    public static createInstance(endPoint: string = NetworkClient.DEFAULT_ENDPOINT) {
-        if (NetworkClient._instance) throw new Error('NetworkClient already instantiated.');
-        const networkClient = new NetworkClient(endPoint);
-        NetworkClient._instance = networkClient;
-        return networkClient;
+    public static get Instance(): NetworkClient {
+        return NetworkClient._instance || (NetworkClient._instance = new NetworkClient());
     }
 
     private static _instance: NetworkClient | null = null;
@@ -135,45 +135,6 @@ class NetworkClient {
         this._eventClient.off(event, callback);
     }
 
-    public get apiLoadingState(): 'not-started' | 'ready' | 'failed' {
-        return this._apiLoadingState;
-    }
-
-    public get consensusState(): 'syncing' | 'established' | 'lost' {
-        return this._consensusState;
-    }
-
-    public get peerCount(): number {
-        return this._peerCount;
-    }
-
-    public get headInfo(): { height: number, globalHashrate: number } {
-        return this._headInfo;
-    }
-
-    public get balances(): Map<string, number> {
-        return this._balances;
-    }
-
-    public get pendingTransactions(): Iterable<Partial<DetailedPlainTransaction>> {
-        return this._pendingTransactions.values();
-    }
-
-    public get minedTransactions(): Iterable<DetailedPlainTransaction> {
-        return this._minedTransactions.values();
-    }
-
-    public get relayedTransactions(): Iterable<Partial<DetailedPlainTransaction>> {
-        return this._relayedTransactions.values();
-    }
-
-    /**
-     * @returns base64 transaction hashes
-     */
-    public get expiredTransactions(): Iterable<string> {
-        return this._expiredTransactions.map(([height, txHash]) => txHash);
-    }
-
     public async relayTransaction(txObj: PlainTransaction): Promise<void> {
         return this._eventClient.call('relayTransaction', txObj);
     }
@@ -214,6 +175,47 @@ class NetworkClient {
     public async removeTxFromMempool(txObj: PlainTransaction): Promise<void> {
         return this._eventClient.call('removeTxFromMempool', txObj);
     }
+
+    // Getter
+
+    public get apiLoadingState(): 'not-started' | 'ready' | 'failed' {
+        return this._apiLoadingState;
+    }
+
+    public get consensusState(): 'syncing' | 'established' | 'lost' {
+        return this._consensusState;
+    }
+
+    public get peerCount(): number {
+        return this._peerCount;
+    }
+
+    public get headInfo(): { height: number, globalHashrate: number } {
+        return this._headInfo;
+    }
+
+    public get balances(): Map<string, number> {
+        return this._balances;
+    }
+
+    public get pendingTransactions(): Iterable<Partial<DetailedPlainTransaction>> {
+        return this._pendingTransactions.values();
+    }
+
+    public get minedTransactions(): Iterable<DetailedPlainTransaction> {
+        return this._minedTransactions.values();
+    }
+
+    public get relayedTransactions(): Iterable<Partial<DetailedPlainTransaction>> {
+        return this._relayedTransactions.values();
+    }
+
+    /** @returns base64 transaction hashes */
+    public get expiredTransactions(): Iterable<string> {
+        return this._expiredTransactions.map(([height, txHash]) => txHash);
+    }
+
+    // Private methods
 
     private _evictCachedTransactions() {
         const CACHE_DURATION = 30;
