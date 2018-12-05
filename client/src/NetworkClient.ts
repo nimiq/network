@@ -1,48 +1,54 @@
 import { EventClient, EventCallback } from '@nimiq/rpc-events';
 
-export interface PlainTransaction {
-    sender: string;
-    senderPubKey: Uint8Array;
-    recipient: string;
-    value: number; // in NIM
-    fee: number; // IN NIM
-    validityStartHeight: number;
-    signature: Uint8Array;
-    extraData?: string | Uint8Array;
-}
+// tslint:disable:interface-over-type-literal
+export type PlainTransaction = {
+    sender: string,
+    senderPubKey: Uint8Array,
+    recipient: string,
+    value: number, // in NIM
+    fee: number, // IN NIM
+    validityStartHeight: number,
+    signature: Uint8Array,
+    extraData?: string | Uint8Array,
+};
 
-export interface DetailedPlainTransaction {
-    sender: string;
-    recipient: string;
-    value: number; // in NIM
-    fee: number; // IN NIM
-    extraData: Uint8Array;
-    hash: string; // base64
-    blockHeight: number;
-    blockHash?: string; // base64
-    timestamp: number;
-    validityStartHeight: number;
-}
+export type DetailedPlainTransaction = {
+    sender: string,
+    recipient: string,
+    value: number, // in NIM
+    fee: number, // IN NIM
+    extraData: Uint8Array,
+    hash: string, // base64
+    blockHeight: number,
+    blockHash?: string, // base64
+    timestamp: number,
+    validityStartHeight: number,
+};
 
-export interface PlainVestingContract {
-    address: string;
-    owner: string;
-    start: number;
-    stepAmount: number;
-    stepBlocks: number;
-    totalAmount: number;
-}
+export type PlainVestingContract = {
+    address: string,
+    owner: string,
+    start: number,
+    stepAmount: number,
+    stepBlocks: number,
+    totalAmount: number,
+};
+// tslint:enable:interface-over-type-literal
 
 class NetworkClient {
     public static get Instance(): NetworkClient {
-        if (!NetworkClient._instance) {
-            NetworkClient._instance = new NetworkClient();
-        }
-        return NetworkClient._instance;
+        return NetworkClient._instance || (NetworkClient._instance = new NetworkClient());
     }
 
-    public static hasDefaultInstance() {
+    public static hasInstance() {
         return !!NetworkClient._instance;
+    }
+
+    public static createInstance(endPoint: string = NetworkClient.DEFAULT_ENDPOINT) {
+        if (NetworkClient._instance) throw new Error('NetworkClient already instantiated.');
+        const networkClient = new NetworkClient(endPoint);
+        NetworkClient._instance = networkClient;
+        return networkClient;
     }
 
     private static _instance: NetworkClient | null = null;
@@ -72,7 +78,7 @@ class NetworkClient {
     private _eventClient!: EventClient;
     private $iframe!: HTMLIFrameElement;
     private _apiLoadingState: 'not-started' | 'ready' | 'failed' = 'not-started';
-    private _consensus: 'syncing' | 'established' | 'lost' = 'syncing';
+    private _consensusState: 'syncing' | 'established' | 'lost' = 'syncing';
     private _peerCount: number = 0;
     private _headInfo: { height: number, globalHashrate: number } = { height: 0, globalHashrate: 0 };
     private _balances: Map<string, number> = new Map<string, number>();
@@ -83,7 +89,7 @@ class NetworkClient {
     private _relayedTransactions: Map<string, Partial<DetailedPlainTransaction>> =
         new Map<string, Partial<DetailedPlainTransaction>>();
 
-    constructor(endpoint: string = NetworkClient.DEFAULT_ENDPOINT) {
+    private constructor(endpoint: string = NetworkClient.DEFAULT_ENDPOINT) {
         this._endpoint = endpoint;
     }
 
@@ -95,9 +101,9 @@ class NetworkClient {
 
         this.on(NetworkClient.Events.API_READY, () => this._apiLoadingState = 'ready');
         this.on(NetworkClient.Events.API_FAIL, () => this._apiLoadingState = 'failed');
-        this.on(NetworkClient.Events.CONSENSUS_SYNCING, () => this._consensus = 'syncing');
-        this.on(NetworkClient.Events.CONSENSUS_ESTABLISHED, () => this._consensus = 'established');
-        this.on(NetworkClient.Events.CONSENSUS_LOST, () => this._consensus = 'lost');
+        this.on(NetworkClient.Events.CONSENSUS_SYNCING, () => this._consensusState = 'syncing');
+        this.on(NetworkClient.Events.CONSENSUS_ESTABLISHED, () => this._consensusState = 'established');
+        this.on(NetworkClient.Events.CONSENSUS_LOST, () => this._consensusState = 'lost');
         this.on(NetworkClient.Events.PEERS_CHANGED, (peerCount: number) => this._peerCount = peerCount);
         this.on(NetworkClient.Events.BALANCES_CHANGED,
             (balances: Map<string, number>) => this._balances = balances);
@@ -121,11 +127,6 @@ class NetworkClient {
         });
     }
 
-    public setAsDefaultInstance() {
-        if (NetworkClient._instance) throw new Error('Default Instance already exists!');
-        NetworkClient._instance = this;
-    }
-
     public async on(event: NetworkClient.Events, callback: EventCallback) {
         this._eventClient.on(event, callback);
     }
@@ -138,8 +139,8 @@ class NetworkClient {
         return this._apiLoadingState;
     }
 
-    public get consensus(): 'syncing' | 'established' | 'lost' {
-        return this._consensus;
+    public get consensusState(): 'syncing' | 'established' | 'lost' {
+        return this._consensusState;
     }
 
     public get peerCount(): number {
@@ -215,7 +216,7 @@ class NetworkClient {
     }
 
     private _evictCachedTransactions() {
-        const CACHE_DURATION = 20;
+        const CACHE_DURATION = 30;
         // purge expired transactions
         for (let i = 0; i < this._expiredTransactions.length; ++i) {
             const [expiredAt] = this._expiredTransactions[i];
