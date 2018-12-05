@@ -34,6 +34,19 @@ export interface PlainVestingContract {
 }
 
 class NetworkClient {
+    public static get Instance(): NetworkClient {
+        if (!NetworkClient._instance) {
+            NetworkClient._instance = new NetworkClient();
+        }
+        return NetworkClient._instance;
+    }
+
+    public static hasDefaultInstance() {
+        return !!NetworkClient._instance;
+    }
+
+    private static _instance: NetworkClient | null = null;
+
     private static readonly DEFAULT_ENDPOINT =
         window.location.origin === 'https://accounts.nimiq.com'
             ? 'https://network-next.nimiq.com'
@@ -106,6 +119,11 @@ class NetworkClient {
             this._headInfo = headInfo;
             this._evictCachedTransactions();
         });
+    }
+
+    public setAsDefaultInstance() {
+        if (NetworkClient._instance) throw new Error('Default Instance already exists!');
+        NetworkClient._instance = this;
     }
 
     public async on(event: NetworkClient.Events, callback: EventCallback) {
