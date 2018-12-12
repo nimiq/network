@@ -135,15 +135,15 @@ class NetworkClient {
         this._eventClient.off(event, callback);
     }
 
-    public async disconnect() {
-        this._eventClient.call('disconnect');
+    public async disconnect(): Promise<boolean> {
+        return this._eventClient.call('disconnect');
     }
 
-    public async connectPico(addresses: string[]) {
-        this._eventClient.call('connectPico', addresses);
+    public async connectPico(addresses: string[]): Promise<Map<string, number>> {
+        return this._eventClient.call('connectPico', addresses);
     }
 
-    public async relayTransaction(txObj: PlainTransaction): Promise<void> {
+    public async relayTransaction(txObj: PlainTransaction): Promise<boolean> {
         return this._eventClient.call('relayTransaction', txObj);
     }
 
@@ -151,7 +151,7 @@ class NetworkClient {
         return this._eventClient.call('getTransactionSize', txObj);
     }
 
-    public async subscribe(addresses: string | string[]): Promise<void> {
+    public async subscribe(addresses: string | string[]): Promise<boolean> {
         return this._eventClient.call('subscribe', addresses);
     }
 
@@ -180,7 +180,7 @@ class NetworkClient {
         return this._eventClient.call('getGenesisVestingContracts');
     }
 
-    public async removeTxFromMempool(txObj: PlainTransaction): Promise<void> {
+    public async removeTxFromMempool(txObj: PlainTransaction): Promise<boolean> {
         return this._eventClient.call('removeTxFromMempool', txObj);
     }
 
