@@ -135,6 +135,14 @@ class NetworkClient {
         this._eventClient.off(event, callback);
     }
 
+    public async disconnect() {
+        this._eventClient.call('disconnect');
+    }
+
+    public async connectPico(addresses: string[]) {
+        this._eventClient.call('connectPico', addresses);
+    }
+
     public async relayTransaction(txObj: PlainTransaction): Promise<void> {
         return this._eventClient.call('relayTransaction', txObj);
     }
