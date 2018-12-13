@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@nimiq/nano-api@^0.0.7":
-  version "0.0.7"
-  resolved "https://registry.yarnpkg.com/@nimiq/nano-api/-/nano-api-0.0.7.tgz#4fc8dd98c79df64bf8f83caba12926ef1e6cbb1d"
-  integrity sha512-sW392Pe+GMw5ReWiXwjNKAgjBSdtttNRH+m7Iu2tiTdOqGjGhYOpSDPGEdzFiCkZiCEVG5fRVKpjPZr1Gf+D2g==
+"@nimiq/nano-api@^0.0.8":
+  version "0.0.8"
+  resolved "https://registry.yarnpkg.com/@nimiq/nano-api/-/nano-api-0.0.8.tgz#54814414302c4b9fcb1a5a5817a2d762d72f4669"
+  integrity sha512-aud/F2Pg1SFXHfr9gmMASkNeEgR4J6NwSU44C20C9eXs3memilGE6QQY1cOy4IukJhJnOpJWe/X2aLRsvDHJDw==
   dependencies:
     "@nimiq/utils" "^0.0.2"
 
