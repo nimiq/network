@@ -55,8 +55,8 @@ class NetworkClient {
 
     private static readonly DEFAULT_ENDPOINT =
         window.location.origin === 'https://accounts.nimiq.com'
-            ? 'https://network-next.nimiq.com'
-            : 'https://network-next.nimiq-testnet.com';
+            ? 'https://network.nimiq.com'
+            : 'https://network.nimiq-testnet.com';
 
     private static getAllowedOrigin(endpoint: string): string {
         const url = new URL(endpoint);
