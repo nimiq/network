@@ -1,6 +1,6 @@
 {
   "name": "@nimiq/network-client",
-  "version": "0.1.4",
+  "version": "0.1.5-beta3",
   "main": "dist/NetworkClient.umd.js",
   "module": "dist/NetworkClient.es.js",
   "types": "types/index.d.ts",
@@ -9,10 +9,10 @@
   "license": "Apache-2.0",
   "private": false,
   "dependencies": {
-    "@nimiq/rpc-events": "^0.0.5"
+    "@nimiq/rpc-events": "^0.0.5",
+    "@nimiq/core-web": "1.4.3"
   },
   "devDependencies": {
-    "@nimiq/core-types": "^1.0.0",
     "rollup": "^0.66.0",
     "rollup-plugin-node-resolve": "^3.4.0",
     "tslint": "^5.11.0",

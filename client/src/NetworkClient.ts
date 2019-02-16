@@ -1,3 +1,4 @@
+import { TransactionReceipt } from '@nimiq/core-web';
 import { EventClient, EventCallback } from '@nimiq/rpc-events';
 
 // tslint:disable:interface-over-type-literal
@@ -171,7 +172,7 @@ class NetworkClient {
     ): Promise<{
         newTransactions: DetailedPlainTransaction[],
         removedTransactions: string[],
-        unresolvedTransactions: Nimiq.TransactionReceipt[],
+        unresolvedTransactions: TransactionReceipt[],
     }> {
         return this._eventClient.call('requestTransactionHistory', addresses, knownReceipts, fromHeight);
     }

@@ -29,7 +29,6 @@
     ]
   },
   "include": [
-    "types/Nimiq.d.ts",
     "src/*.ts"
   ],
   "exclude": [
