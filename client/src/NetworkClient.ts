@@ -1,40 +1,6 @@
 import { TransactionReceipt } from '@nimiq/core-web';
 import { EventClient, EventCallback } from '@nimiq/rpc-events';
-
-// tslint:disable:interface-over-type-literal
-export type PlainTransaction = {
-    sender: string,
-    senderPubKey: Uint8Array,
-    recipient: string,
-    value: number, // in NIM
-    fee: number, // IN NIM
-    validityStartHeight: number,
-    signature: Uint8Array,
-    extraData?: string | Uint8Array,
-};
-
-export type DetailedPlainTransaction = {
-    sender: string,
-    recipient: string,
-    value: number, // in NIM
-    fee: number, // IN NIM
-    extraData: Uint8Array,
-    hash: string, // base64
-    blockHeight: number,
-    blockHash?: string, // base64
-    timestamp: number,
-    validityStartHeight: number,
-};
-
-export type PlainVestingContract = {
-    address: string,
-    owner: string,
-    start: number,
-    stepAmount: number,
-    stepBlocks: number,
-    totalAmount: number,
-};
-// tslint:enable:interface-over-type-literal
+import { PlainTransaction, DetailedPlainTransaction, PlainVestingContract } from '@nimiq/nano-api';
 
 class NetworkClient {
     public static createInstance(endPoint: string = NetworkClient.DEFAULT_ENDPOINT) {
@@ -134,14 +100,6 @@ class NetworkClient {
 
     public async off(event: NetworkClient.Events, callback: EventCallback) {
         this._eventClient.off(event, callback);
-    }
-
-    public async disconnect(): Promise<boolean> {
-        return this._eventClient.call('disconnect');
-    }
-
-    public async connectPico(addresses: string[]): Promise<Map<string, number>> {
-        return this._eventClient.call('connectPico', addresses);
     }
 
     public async relayTransaction(txObj: PlainTransaction): Promise<boolean> {
@@ -268,4 +226,4 @@ namespace NetworkClient { // tslint:disable-line:no-namespace
     }
 }
 
-export { NetworkClient };
+export { NetworkClient, PlainTransaction, DetailedPlainTransaction, PlainVestingContract };
