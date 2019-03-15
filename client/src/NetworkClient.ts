@@ -1,6 +1,6 @@
 import { TransactionReceipt } from '@nimiq/core-web';
 import { EventClient, EventCallback } from '@nimiq/rpc-events';
-import { PlainTransaction, DetailedPlainTransaction, PlainVestingContract } from '@nimiq/nano-api';
+import { PlainTransaction, DetailedPlainTransaction, PlainVestingContract, Events } from '@nimiq/nano-api';
 
 class NetworkClient {
     public static createInstance(endPoint: string = NetworkClient.DEFAULT_ENDPOINT) {
@@ -209,21 +209,4 @@ class NetworkClient {
     }
 }
 
-namespace NetworkClient { // tslint:disable-line:no-namespace
-    export enum Events {
-        API_READY = 'nimiq-api-ready',
-        API_FAIL = 'nimiq-api-fail',
-        CONSENSUS_SYNCING = 'nimiq-consensus-syncing',
-        CONSENSUS_ESTABLISHED = 'nimiq-consensus-established',
-        CONSENSUS_LOST = 'nimiq-consensus-lost',
-        PEERS_CHANGED = 'nimiq-peer-count',
-        BALANCES_CHANGED = 'nimiq-balances',
-        TRANSACTION_PENDING = 'nimiq-transaction-pending',
-        TRANSACTION_EXPIRED = 'nimiq-transaction-expired',
-        TRANSACTION_MINED = 'nimiq-transaction-mined',
-        TRANSACTION_RELAYED = 'nimiq-transaction-relayed',
-        HEAD_CHANGE = 'nimiq-head-change',
-    }
-}
-
-export { NetworkClient, PlainTransaction, DetailedPlainTransaction, PlainVestingContract };
+export { NetworkClient, PlainTransaction, DetailedPlainTransaction, PlainVestingContract, Events };
