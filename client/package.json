@@ -1,6 +1,6 @@
 {
   "name": "@nimiq/network-client",
-  "version": "0.1.5",
+  "version": "0.1.7",
   "main": "dist/NetworkClient.umd.js",
   "module": "dist/NetworkClient.es.js",
   "types": "types/index.d.ts",
@@ -9,7 +9,7 @@
   "license": "Apache-2.0",
   "private": false,
   "dependencies": {
-    "@nimiq/rpc-events": "^0.0.5",
+    "@nimiq/rpc-events": "^0.0.8",
     "@nimiq/core-web": "1.4.3"
   },
   "devDependencies": {
