@@ -177,6 +177,10 @@ class NetworkClient {
         return this._eventClient.call('requestTransactionHistory', addresses, knownReceipts, fromHeight);
     }
 
+    public async requestTransactionReceipts(addresses: string): Promise<TransactionReceipt> {
+        return this._eventClient.call('requestTransactionReceipts', addresses);
+    }
+
     public async getGenesisVestingContracts(): Promise<PlainVestingContract[]> {
         return this._eventClient.call('getGenesisVestingContracts');
     }
