@@ -177,7 +177,7 @@ class NetworkClient {
         return this._eventClient.call('requestTransactionHistory', addresses, knownReceipts, fromHeight);
     }
 
-    public async requestTransactionReceipts(addresses: string): Promise<TransactionReceipt> {
+    public async requestTransactionReceipts(addresses: string): Promise<TransactionReceipt[]> {
         return this._eventClient.call('requestTransactionReceipts', addresses);
     }
 
