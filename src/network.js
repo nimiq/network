@@ -10,7 +10,8 @@ export class Network extends NanoNetworkApi {
         this._eventServer = new EventServer();
 
         // Register RPC calls.
-        this._eventServer.onRequest('disconnect', (state) => this.disconnect());
+        this._eventServer.onRequest('connectNano', () => this.connect());
+        this._eventServer.onRequest('disconnect', () => this.disconnect());
         this._eventServer.onRequest('connectPico',
             (state, userFriendlyAddresses, upgradeToNano) => this.connectPico(userFriendlyAddresses, upgradeToNano));
         this._eventServer.onRequest('relayTransaction', (state, arg) => this.relayTransaction(arg));
