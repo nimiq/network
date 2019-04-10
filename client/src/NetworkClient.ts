@@ -140,8 +140,8 @@ class NetworkClient {
         return this._eventClient.call('disconnect');
     }
 
-    public async connectPico(addresses: string[]): Promise<Map<string, number>> {
-        return this._eventClient.call('connectPico', addresses);
+    public async connectPico(addresses?: string[], upgradeToNano?: boolean): Promise<Map<string, number>> {
+        return this._eventClient.call('connectPico', addresses, upgradeToNano);
     }
 
     public async relayTransaction(txObj: PlainTransaction): Promise<boolean> {
