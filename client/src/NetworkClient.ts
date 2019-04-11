@@ -55,7 +55,7 @@ class NetworkClient {
     private static _instance: NetworkClient | null = null;
 
     private static readonly DEFAULT_ENDPOINT =
-        window.location.origin === 'https://accounts.nimiq.com'
+        window.location.origin.endsWith('nimiq.com')
             ? 'https://network.nimiq.com'
             : 'https://network.nimiq-testnet.com';
 
