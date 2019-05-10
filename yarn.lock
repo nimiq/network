@@ -2,12 +2,12 @@
 # yarn lockfile v1
 
 
-"@nimiq/nano-api@^0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@nimiq/nano-api/-/nano-api-0.3.0.tgz#094f613d432d1dc9ab34068b8100845bccfdf4b7"
-  integrity sha512-qc2rSS8xYq4ecaiaA57OvCbepFURZ1320RZ6SrUwPlvh3bDBqC8S/nUJM4d0tz5dYAYeE1yLNGTd7/5OeG3fWA==
+"@nimiq/nano-api@^0.3.1":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@nimiq/nano-api/-/nano-api-0.3.1.tgz#554b374a7d280573fb30a50ff0e22f2f832dcfab"
+  integrity sha512-kfwFjRsweuEssJN2+a/gn+PNnu1QWhAkjIcu/m4KJeLA7FeSx9MBLPerfKcNvDBVETYNBzWIy/1QXQfF+CMPhQ==
   dependencies:
-    "@nimiq/utils" "^0.0.2"
+    "@nimiq/utils" "^0.3.0"
 
 "@nimiq/rpc-events@^0.0.8":
   version "0.0.8"
@@ -21,10 +21,10 @@
   resolved "https://registry.yarnpkg.com/@nimiq/rpc/-/rpc-0.1.4.tgz#ff6608255f23bb80079e10b23b7b74c35190e9da"
   integrity sha512-vKU8zw8aHabGBaRTvf31MeVaByhkEChkdlx6IYw555XH5TitYQO6XYfTpoDelXUOG/xX4BQrCMV6NnLKY5yN0Q==
 
-"@nimiq/utils@^0.0.2":
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/@nimiq/utils/-/utils-0.0.2.tgz#190747f8ef9e6b4640e4ee3c5a9c0b089bf47049"
-  integrity sha512-+ARPAg55+l+kvtGa75hUROf+fCIEk2L7C0TsYpxvy+YJ3ewIM1J8oPPV80PieF91R21AI74SOh42TZuA1YH1Sw==
+"@nimiq/utils@^0.3.0":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@nimiq/utils/-/utils-0.3.1.tgz#f3bcd0800db207316cac754ff6548a1030290a5c"
+  integrity sha512-DONU//nAegIJHElIPpChbwzcUyA8piuGYeaGeQuGxdn8uCNzjGz8IZwGfnVYLwNONLswkYQQoRsxDsHypqdv3A==
 
 "@types/estree@0.0.39":
   version "0.0.39"
