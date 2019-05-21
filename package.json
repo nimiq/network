@@ -21,7 +21,7 @@
     "rollup-plugin-node-resolve": "^5.0.0"
   },
   "dependencies": {
-    "@nimiq/nano-api": "^0.3.3",
+    "@nimiq/nano-api": "^0.3.4",
     "@nimiq/rpc-events": "^0.0.8"
   }
 }
