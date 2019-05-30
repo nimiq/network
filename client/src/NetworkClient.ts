@@ -36,10 +36,20 @@ export type PlainVestingContract = {
 };
 // tslint:enable:interface-over-type-literal
 
+export enum ConsensusType {
+    NANO = 'nano',
+    PICO = 'pico',
+}
+
 class NetworkClient {
-    public static createInstance(endPoint: string = NetworkClient.DEFAULT_ENDPOINT) {
+    public static readonly DEFAULT_ENDPOINT =
+        window.location.origin.endsWith('nimiq.com')
+            ? 'https://network.nimiq.com'
+            : 'https://network.nimiq-testnet.com';
+
+    public static createInstance(endPoint: string = NetworkClient.DEFAULT_ENDPOINT, consensusType?: ConsensusType) {
         if (NetworkClient._instance) throw new Error('NetworkClient already instantiated.');
-        const networkClient = new NetworkClient(endPoint);
+        const networkClient = new NetworkClient(endPoint, consensusType);
         NetworkClient._instance = networkClient;
         return networkClient;
     }
@@ -53,11 +63,6 @@ class NetworkClient {
     }
 
     private static _instance: NetworkClient | null = null;
-
-    private static readonly DEFAULT_ENDPOINT =
-        window.location.origin.endsWith('nimiq.com')
-            ? 'https://network.nimiq.com'
-            : 'https://network.nimiq-testnet.com';
 
     private static getAllowedOrigin(endpoint: string): string {
         const url = new URL(endpoint);
@@ -90,8 +95,11 @@ class NetworkClient {
     private _relayedTransactions: Map<string, Partial<DetailedPlainTransaction>> =
         new Map<string, Partial<DetailedPlainTransaction>>();
 
-    private constructor(endpoint: string = NetworkClient.DEFAULT_ENDPOINT) {
-        this._endpoint = endpoint;
+    private constructor(
+        endpoint: string = NetworkClient.DEFAULT_ENDPOINT,
+        consensusType: ConsensusType = ConsensusType.PICO,
+    ) {
+        this._endpoint = `${endpoint}#consensusType=${consensusType}`;
     }
 
     public async init() {

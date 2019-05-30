@@ -18,4 +18,9 @@ function getConfig() {
 }
 
 const network = new Network(getConfig());
-network.connectPico([], false).catch(console.error);
+const params = new URLSearchParams(window.location.hash.substring(1));
+if (params.get('consensusType') === 'nano') {
+    network.connect().catch(console.error);
+} else {
+    network.connectPico([], false).catch(console.error);
+}
