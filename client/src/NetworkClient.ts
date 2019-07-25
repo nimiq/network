@@ -83,6 +83,7 @@ class NetworkClient {
     private readonly _endpoint: string;
     private _eventClient!: EventClient;
     private $iframe!: HTMLIFrameElement;
+    private _initializationPromise?: Promise<void>;
     private _apiLoadingState: 'not-started' | 'ready' | 'failed' = 'not-started';
     private _consensusState: 'syncing' | 'established' | 'lost' = 'syncing';
     private _peerCount: number = 0;
@@ -103,37 +104,45 @@ class NetworkClient {
     }
 
     public async init() {
-        if (this._eventClient) return;
-        this.$iframe = await NetworkClient._createIframe(this._endpoint) as HTMLIFrameElement;
-        const targetWindow = this.$iframe.contentWindow as Window;
-        this._eventClient = await EventClient.create(targetWindow, NetworkClient.getAllowedOrigin(this._endpoint));
+        this._initializationPromise = this._initializationPromise || (async () => {
+            this.$iframe = await NetworkClient._createIframe(this._endpoint);
+            const targetWindow = this.$iframe.contentWindow!;
+            this._eventClient = await EventClient.create(targetWindow, NetworkClient.getAllowedOrigin(this._endpoint));
 
-        this.on(NetworkClient.Events.API_READY, () => this._apiLoadingState = 'ready');
-        this.on(NetworkClient.Events.API_FAIL, () => this._apiLoadingState = 'failed');
-        this.on(NetworkClient.Events.CONSENSUS_SYNCING, () => this._consensusState = 'syncing');
-        this.on(NetworkClient.Events.CONSENSUS_ESTABLISHED, () => this._consensusState = 'established');
-        this.on(NetworkClient.Events.CONSENSUS_LOST, () => this._consensusState = 'lost');
-        this.on(NetworkClient.Events.PEERS_CHANGED, (peerCount: number) => this._peerCount = peerCount);
-        this.on(NetworkClient.Events.BALANCES_CHANGED,
-            (balances: Map<string, number>) => this._balances = balances);
-        this.on(NetworkClient.Events.TRANSACTION_PENDING,
-            (tx: Partial<DetailedPlainTransaction>) => this._pendingTransactions.set(tx.hash!, tx));
-        this.on(NetworkClient.Events.TRANSACTION_EXPIRED, (txHash: string) => {
-            this._expiredTransactions.push([this.headInfo.height, txHash]);
-            this._pendingTransactions.delete(txHash);
-        });
-        this.on(NetworkClient.Events.TRANSACTION_MINED, (tx: DetailedPlainTransaction) => {
-            this._minedTransactions.set(tx.hash, tx);
-            this._pendingTransactions.delete(tx.hash);
-        });
-        this.on(NetworkClient.Events.TRANSACTION_RELAYED, (tx: Partial<DetailedPlainTransaction>) => {
-            tx.blockHeight = this.headInfo.height;
-            this._relayedTransactions.set(tx.hash!, tx);
-        });
-        this.on(NetworkClient.Events.HEAD_CHANGE, (headInfo: { height: number, globalHashrate: number}) => {
-            this._headInfo = headInfo;
-            this._evictCachedTransactions();
-        });
+            this.on(NetworkClient.Events.API_READY, () => this._apiLoadingState = 'ready');
+            this.on(NetworkClient.Events.API_FAIL, () => this._apiLoadingState = 'failed');
+            this.on(NetworkClient.Events.CONSENSUS_SYNCING, () => this._consensusState = 'syncing');
+            this.on(NetworkClient.Events.CONSENSUS_ESTABLISHED, () => this._consensusState = 'established');
+            this.on(NetworkClient.Events.CONSENSUS_LOST, () => this._consensusState = 'lost');
+            this.on(NetworkClient.Events.PEERS_CHANGED, (peerCount: number) => this._peerCount = peerCount);
+            this.on(NetworkClient.Events.BALANCES_CHANGED,
+                (balances: Map<string, number>) => this._balances = balances);
+            this.on(NetworkClient.Events.TRANSACTION_PENDING,
+                (tx: Partial<DetailedPlainTransaction>) => this._pendingTransactions.set(tx.hash!, tx));
+            this.on(NetworkClient.Events.TRANSACTION_EXPIRED, (txHash: string) => {
+                this._expiredTransactions.push([this.headInfo.height, txHash]);
+                this._pendingTransactions.delete(txHash);
+            });
+            this.on(NetworkClient.Events.TRANSACTION_MINED, (tx: DetailedPlainTransaction) => {
+                this._minedTransactions.set(tx.hash, tx);
+                this._pendingTransactions.delete(tx.hash);
+            });
+            this.on(NetworkClient.Events.TRANSACTION_RELAYED, (tx: Partial<DetailedPlainTransaction>) => {
+                tx.blockHeight = this.headInfo.height;
+                this._relayedTransactions.set(tx.hash!, tx);
+            });
+            this.on(NetworkClient.Events.HEAD_CHANGE, (headInfo: { height: number, globalHashrate: number}) => {
+                this._headInfo = headInfo;
+                this._evictCachedTransactions();
+            });
+        })();
+
+        try {
+            await this._initializationPromise;
+        } catch (e) {
+            delete this._initializationPromise;
+            throw e;
+        }
     }
 
     public async on(event: NetworkClient.Events, callback: EventCallback) {
