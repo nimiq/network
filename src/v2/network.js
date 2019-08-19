@@ -1,19 +1,17 @@
 import { EventServer } from '@nimiq/rpc-events';
-import { NanoNetworkApi } from '@nimiq/nano-api-legacy';
+import { NanoNetworkApi } from '@nimiq/nano-api';
 
 export class Network extends NanoNetworkApi {
     /**
-     * @param {{cdn:string, network:string}} config
+     * @param {{cdn: string, network: string}} config
      */
     constructor(config) {
         super(config);
         this._eventServer = new EventServer();
 
         // Register RPC calls.
-        this._eventServer.onRequest('connectNano', () => this.connect());
-        this._eventServer.onRequest('disconnect', () => this.disconnect());
-        this._eventServer.onRequest('connectPico',
-            (state, userFriendlyAddresses, upgradeToNano) => this.connectPico(userFriendlyAddresses, upgradeToNano));
+        this._eventServer.onRequest('connect', () => this.connect());
+        this._eventServer.onRequest('connectPico', (state, addresses) => this.connectPico(addresses));
         this._eventServer.onRequest('relayTransaction', (state, arg) => this.relayTransaction(arg));
         this._eventServer.onRequest('getTransactionSize', (state, arg) => this.getTransactionSize(arg));
         this._eventServer.onRequest('subscribe', (state, arg) => this.subscribe(arg));

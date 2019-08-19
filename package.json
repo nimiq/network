@@ -1,11 +1,11 @@
 {
   "name": "@nimiq/network",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Nimiq Network",
   "main": "dist/network.umd.js",
   "module": "dist/network.es.js",
   "scripts": {
-    "build": "export _HASH=$(git rev-parse --short=8 HEAD) && rm nimiq-dist/network*.js ||: && rm nimiq-dist/index.html ||: && yarn rollup -c && sed \"s/src=\\\"autorun.js\\\" type=\\\"module\\\"/src=\\\"network.`echo $_HASH`.js\\\"/\" src/index.html > nimiq-dist/index.html"
+    "build": "export _HASH=$(git rev-parse --short=8 HEAD) && rm -rf nimiq-dist/* ||: && yarn rollup -c && sed \"s/src=\\\"autorun.js\\\" type=\\\"module\\\"/src=\\\"network.`echo $_HASH`.js\\\"/\" src/index.html > nimiq-dist/index.html && cp nimiq-dist/index.html nimiq-dist/v2/index.html"
   },
   "files": [
     "dist"
@@ -21,7 +21,8 @@
     "rollup-plugin-node-resolve": "^5.0.0"
   },
   "dependencies": {
-    "@nimiq/nano-api": "^0.3.8",
+    "@nimiq/nano-api": "^0.4.0",
+    "@nimiq/nano-api-legacy": "npm:@nimiq/nano-api@^0.3.8",
     "@nimiq/rpc-events": "^0.0.8"
   }
 }

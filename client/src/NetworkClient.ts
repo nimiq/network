@@ -36,20 +36,15 @@ export type PlainVestingContract = {
 };
 // tslint:enable:interface-over-type-literal
 
-export enum ConsensusType {
-    NANO = 'nano',
-    PICO = 'pico',
-}
-
 class NetworkClient {
     public static readonly DEFAULT_ENDPOINT =
         window.location.origin.endsWith('nimiq.com')
             ? 'https://network.nimiq.com'
             : 'https://network.nimiq-testnet.com';
 
-    public static createInstance(endPoint: string = NetworkClient.DEFAULT_ENDPOINT, consensusType?: ConsensusType) {
+    public static createInstance(endPoint: string = NetworkClient.DEFAULT_ENDPOINT) {
         if (NetworkClient._instance) throw new Error('NetworkClient already instantiated.');
-        const networkClient = new NetworkClient(endPoint, consensusType);
+        const networkClient = new NetworkClient(endPoint);
         NetworkClient._instance = networkClient;
         return networkClient;
     }
@@ -96,11 +91,8 @@ class NetworkClient {
     private _relayedTransactions: Map<string, Partial<DetailedPlainTransaction>> =
         new Map<string, Partial<DetailedPlainTransaction>>();
 
-    private constructor(
-        endpoint: string = NetworkClient.DEFAULT_ENDPOINT,
-        consensusType: ConsensusType = ConsensusType.PICO,
-    ) {
-        this._endpoint = `${endpoint}#consensusType=${consensusType}`;
+    private constructor(endpoint: string = NetworkClient.DEFAULT_ENDPOINT) {
+        this._endpoint = endpoint + '/v2';
     }
 
     public async init() {
@@ -153,16 +145,8 @@ class NetworkClient {
         this._eventClient.off(event, callback);
     }
 
-    public async connectNano(): Promise<boolean> {
-        return this._eventClient.call('connectNano');
-    }
-
-    public async connectPico(addresses?: string[], upgradeToNano?: boolean): Promise<Map<string, number>> {
-        return this._eventClient.call('connectPico', addresses, upgradeToNano);
-    }
-
-    public async disconnect(): Promise<boolean> {
-        return this._eventClient.call('disconnect');
+    public async connect(): Promise<boolean> {
+        return this._eventClient.call('connect');
     }
 
     public async relayTransaction(txObj: PlainTransaction): Promise<boolean> {
@@ -187,13 +171,11 @@ class NetworkClient {
 
     public async requestTransactionHistory(
         addresses: string | string[], // userfriendly addresses
-        // Map<address (userfriendly), Map<txhash (base64), blockhash (base64)>>
-        knownReceipts: Map<string, Map<string, string>>,
+        knownReceipts: Map<string, string>, // Map<txhash (base64), blockhash (base64)>
         fromHeight?: number,
     ): Promise<{
         newTransactions: DetailedPlainTransaction[],
-        removedTransactions: string[],
-        unresolvedTransactions: TransactionReceipt[],
+        // removedTransactions: string[],
     }> {
         return this._eventClient.call('requestTransactionHistory', addresses, knownReceipts, fromHeight);
     }

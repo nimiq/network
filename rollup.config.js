@@ -19,7 +19,8 @@ export default [
             name: 'Network',
             globals: {
                 '@nimiq/rpc-events': 'Rpc',
-                '@nimiq/nano-api': 'window'
+                '@nimiq/nano-api': 'window',
+                '@nimiq/nano-api-legacy': 'window'
             }
         },
         external: dependencies
@@ -42,5 +43,16 @@ export default [
         plugins: [
             resolve()
         ]
-    }
+    },
+    {
+        input: 'src/v2/autorun.js',
+        output: {
+            file: `nimiq-dist/v2/network.${process.env._HASH ? `${process.env._HASH}.` : ''}js`,
+            format: 'iife',
+            name: 'Network'
+        },
+        plugins: [
+            resolve()
+        ]
+    },
 ];
