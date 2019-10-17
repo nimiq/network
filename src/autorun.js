@@ -1,6 +1,6 @@
 import { Network } from './network';
 
-const CORE_VERSION = '1.4.1';
+const CORE_VERSION = '1.5.2';
 
 function getConfig() {
     switch (location.host) {
