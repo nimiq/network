@@ -1,6 +1,6 @@
 {
   "name": "@nimiq/network-client",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "main": "dist/NetworkClient.umd.js",
   "module": "dist/NetworkClient.es.js",
   "types": "types/index.d.ts",
@@ -10,7 +10,7 @@
   "private": false,
   "dependencies": {
     "@nimiq/rpc-events": "^0.0.8",
-    "@nimiq/core-web": "1.4.3"
+    "@nimiq/core-web": "1.5.3"
   },
   "devDependencies": {
     "rollup": "^0.66.0",
