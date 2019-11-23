@@ -115,10 +115,12 @@ class NetworkClient {
             this.on(NetworkClient.Events.TRANSACTION_EXPIRED, (txHash: string) => {
                 this._expiredTransactions.push([this.headInfo.height, txHash]);
                 this._pendingTransactions.delete(txHash);
+                this._relayedTransactions.delete(txHash);
             });
             this.on(NetworkClient.Events.TRANSACTION_MINED, (tx: DetailedPlainTransaction) => {
                 this._minedTransactions.set(tx.hash, tx);
                 this._pendingTransactions.delete(tx.hash);
+                this._relayedTransactions.delete(tx.hash);
             });
             this.on(NetworkClient.Events.TRANSACTION_RELAYED, (tx: Partial<DetailedPlainTransaction>) => {
                 tx.blockHeight = this.headInfo.height;
@@ -248,12 +250,6 @@ class NetworkClient {
         for (const tx of this._minedTransactions.values()) {
             if (tx.blockHeight + CACHE_DURATION <= this.headInfo.height) {
                 this._minedTransactions.delete(tx.hash);
-            }
-        }
-        // purge relayed transactions
-        for (const tx of this._relayedTransactions.values()) {
-            if (tx.blockHeight! + CACHE_DURATION <= this.headInfo.height) {
-                this._relayedTransactions.delete(tx.hash!);
             }
         }
     }
