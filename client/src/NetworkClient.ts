@@ -1,6 +1,6 @@
 import { EventClient, EventCallback } from '@nimiq/rpc-events';
 
-type TransactionReceipt = import('@nimiq/core-web').TransactionReceipt;
+type TransactionReceipt = import ('@nimiq/core-web').TransactionReceipt;
 
 // tslint:disable:interface-over-type-literal
 export type PlainTransaction = {
