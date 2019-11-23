@@ -1,5 +1,6 @@
-import { TransactionReceipt } from '@nimiq/core-web';
 import { EventClient, EventCallback } from '@nimiq/rpc-events';
+
+type TransactionReceipt = import('@nimiq/core-web').TransactionReceipt;
 
 // tslint:disable:interface-over-type-literal
 export type PlainTransaction = {
@@ -149,7 +150,7 @@ class NetworkClient {
         return this._eventClient.call('connect');
     }
 
-    public async relayTransaction(txObj: PlainTransaction): Promise<boolean> {
+    public async relayTransaction(txObj: PlainTransaction): Promise<object> {
         return this._eventClient.call('relayTransaction', txObj);
     }
 
