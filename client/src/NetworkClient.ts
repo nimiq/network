@@ -179,6 +179,7 @@ class NetworkClient {
     ): Promise<{
         newTransactions: DetailedPlainTransaction[],
         // removedTransactions: string[],
+        wasRateLimited: boolean,
     }> {
         return this._eventClient.call('requestTransactionHistory', addresses, knownReceipts, fromHeight);
     }
