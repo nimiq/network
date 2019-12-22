@@ -3,7 +3,34 @@ import { NanoNetworkApi } from '@nimiq/nano-api';
 
 // Time to wait in seconds before deciding that we are the source node for sure.
 // Communication via broadcast channels is incredibly fast, so this number can probably come down a lot.
-const PATIENCE_TIME = 5;
+const PATIENCE_TIME = 3;
+function buildFWithLength(len, call = () => {}) {
+	const fLengths = [
+		() => call(),
+		(a) => call(a),
+		(a, b) => call(a, b),
+		(a, b, c) => call(a, b, c),
+		(a, b, c, d) => call(a, b, c, d),
+		(a, b, c, d, e) => call(a, b, c, d, e),
+		(a, b, c, d, e, f) => call(a, b, c, d, e, f),
+		(a, b, c, d, e, f, g) => call(a, b, c, d, e, f, g),
+	];
+	return fLengths[len];
+}
+function replaceSource(args, replaceWith = "REPLACE_WITH_WINDOW") {
+	let replaced = null;
+    args.forEach(it => {
+        if (typeof it == "object") {
+            Object.entries(it).forEach(entry => {
+                if (entry[0] == "_source") {
+			replaced = entry[1];
+			it[entry[0]] = replaceWith;
+                }
+            });
+        }
+    });
+	return replaced;
+}
 
 export class Network extends NanoNetworkApi {
     /**
@@ -79,13 +106,15 @@ export class Network extends NanoNetworkApi {
 
 		// Register RPC calls.
 		interestingEvents.forEach(e => {
-			this._eventServer.onRequest(e.name, async (...args) => {
+			let f = buildFWithLength(e.runs.length, async (...args) => {
 				return this.decide(() => {
 					return e.runs(...args);
 				}, () => {
 					return this.requestResponse(e.name, args);
 				});
 			});
+
+			this._eventServer.onRequest(e.name, f);
 		});
 
 		setTimeout(() => {
@@ -110,7 +139,9 @@ export class Network extends NanoNetworkApi {
 			} else if (typeof message.data == "object" && "type" in message.data && message.data.type == "nimiq-network-request") {
 				let requestedEvent = interestingEvents.filter(e => e.name == message.data.request);
 				if (requestedEvent.length > 0) {
+					replaceSource(message.data.args, window);
 					requestedEvent[0].runs(...message.data.args).then(r => {
+						replaceSource(message.data.args);
 						message.target.postMessage({
 							type : "nimiq-network-response",
 							request : message.data.request,
@@ -126,7 +157,7 @@ export class Network extends NanoNetworkApi {
 
 					this._needsResponse[message.data.request].forEach(r => {
 						// If the response has the same args as the request, resolve that request.
-						if (r.args.every((a, i) => a == message.data.args[i])) {
+						if (r.args.every((a, i) => i == 0 || a == message.data.args[i])) {
 							r.resolve(message.data.response);
 						} else {
 							stillNeedsResponse.push(r);
@@ -141,16 +172,25 @@ export class Network extends NanoNetworkApi {
     }
 
 	requestResponse(method, args) {
-		return new Promise((resolve, reject) => {
+		return new Promise((res, rej) => {
 			if (!(method in this._needsResponse)) {
 				this._needsResponse[method] = [];
 			}
 
+			let win = replaceSource(args);
+
 			// Register promise callbacks for when response coems in.
 			this._needsResponse[method].push({
-				resolve : resolve,
-				reject : reject,
-				args : args
+				resolve : function (...vals) {
+					replaceSource(args, this.win);
+					res(...vals);
+				},
+				reject : function (...vals) {
+					replaceSource(args, this.win);
+					rej(...vals);
+				},
+				args : args,
+				win : win
 			});
 
 			// Request a response from the source node.
@@ -180,7 +220,7 @@ export class Network extends NanoNetworkApi {
 				return new Promise((resolve, reject) => {
 					setTimeout(() => {
 						// Try again in 1 second resolving if a or b are called, and default for c (trying again in 1 second).
-						resolve(this.decide(a, b)).catch(reject);
+						this.decide(a, b).then(resolve).catch(reject);
 					}, 1000);
 				});
 			}
