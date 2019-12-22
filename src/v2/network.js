@@ -9,21 +9,70 @@ export class Network extends NanoNetworkApi {
         super(config);
         this._eventServer = new EventServer();
 
-        // Register RPC calls.
-        this._eventServer.onRequest('connect', () => this.connect());
-        this._eventServer.onRequest('connectPico', (state, addresses) => this.connectPico(addresses));
-        this._eventServer.onRequest('relayTransaction', (state, arg) => this.relayTransaction(arg));
-        this._eventServer.onRequest('getTransactionSize', (state, arg) => this.getTransactionSize(arg));
-        this._eventServer.onRequest('subscribe', (state, arg) => this.subscribe(arg));
-        this._eventServer.onRequest('getBalance', (state, arg) => this.getBalance(arg));
-        this._eventServer.onRequest('getAccountTypeString', (state, arg) => this.getAccountTypeString(arg));
-        this._eventServer.onRequest(
-            'requestTransactionHistory',
-            (state, addresses, knownReceipts, fromHeight) => this.requestTransactionHistory(addresses, knownReceipts, fromHeight),
-        );
-        this._eventServer.onRequest('requestTransactionReceipts', (state, address) => this.requestTransactionReceipts(address));
-        this._eventServer.onRequest('getGenesisVestingContracts', (state, arg) => this.getGenesisVestingContracts(arg));
-        this._eventServer.onRequest('removeTxFromMempool', (state, arg) => this.removeTxFromMempool(arg));
+		// Define RPC calls.
+		const interstingEvents = [
+			{
+				name : "connect",
+				runs : () => {
+					this.connect();
+				}
+			}, {
+				name : "connectPico",
+				runs : (state, addresses) => {
+					this.connectPico(addresses);
+				}
+			}, {
+				name : "relayTransaction",
+				runs : (state, arg) => {
+					this.relayTransaction(arg);
+				}
+			}, {
+				name : "getTransactionSize",
+				runs : (state, arg) => {
+					this.getTransactionSize(arg);
+				}
+			}, {
+				name : "subscribe",
+				runs : (state, arg) => {
+					this.subscribe(arg);
+				}
+			}, {
+				name : "getBalance",
+				runs : (state, arg) => {
+					this.getBalance(arg);
+				}
+			}, {
+				name : "getAccountTypeString",
+				runs : (state, arg) => {
+					this.getAccountTypeString(arg);
+				}
+			}, {
+				name : "requestTransactionHistory",
+				runs : (state, addresses, knownReceipts, fromHeight) => {
+					this.requestTransactionHistory(addresses, knownReceipts, fromHeight);
+				}
+			}, {
+				name : "requestTransactionReceipts",
+				runs : (state, arg) => {
+					this.requestTransactionReceipts(arg);
+				}
+			}, {
+				name : "getGenesisVestingContracts",
+				runs : (state, arg) => {
+					this.getGenesisVestingContracts(arg);
+				}
+			}, {
+				name : "removeTxFromMempool",
+				runs : (state, arg) => {
+					this.removeTxFromMempool(arg);
+				}
+			}
+		];
+
+		// Register RPC calls.
+		interestingEvents.forEach((event) => {
+			this._eventServer.onRequest(event.name, event.runs);
+		})
     }
 
     fire(event, data) {
