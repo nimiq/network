@@ -93,7 +93,7 @@ class NetworkClient {
         new Map<string, Partial<DetailedPlainTransaction>>();
 
     private constructor(endpoint: string = NetworkClient.DEFAULT_ENDPOINT) {
-        this._endpoint = endpoint + '/v2';
+        this._endpoint = endpoint + '/v2/';
     }
 
     public async init() {

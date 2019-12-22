@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Network Broadcast Demo</title>
+    <script src="../../client/dist/NetworkClient.standalone.umd.js"></script>
+</head>
+<body>
+    <p>API ready: <span id="api-ready">-</span></p>
+    <p>Consensus: <span id="consensus">-</span></p>
+    <p>Peers: <span id="peers">-</span></p>
+    <p>Head: <span id="head">-</span></p>
+
+    <p>Balance: <span id="balance">-</span> NIM <button id="update-balance">Update</button></p>
+
+
+    <script>
+        NetworkClient = NetworkClient.NetworkClient;
+
+        const $ = document.querySelector.bind(document);
+
+        async function main() {
+            // Connect to development network
+            const client = NetworkClient.createInstance(location.origin + '/nimiq-dist');
+
+            // Uncomment (and comment line above) to connect to live testnet network
+            // const client = NetworkClient.createInstance();
+
+            await client.init();
+
+            client.on(NetworkClient.Events.API_READY, () => $('#api-ready').textContent = 'ready');
+            client.on(NetworkClient.Events.API_FAIL, () => $('#api-ready').textContent = 'failed');
+
+            client.on(NetworkClient.Events.CONSENSUS_SYNCING, () => $('#consensus').textContent = 'syncing');
+            client.on(NetworkClient.Events.CONSENSUS_ESTABLISHED, () => $('#consensus').textContent = 'established');
+            client.on(NetworkClient.Events.CONSENSUS_LOST, () => $('#consensus').textContent = 'lost');
+
+            client.on(NetworkClient.Events.PEERS_CHANGED, (peers) => $('#peers').textContent = peers);
+
+            client.on(NetworkClient.Events.HEAD_CHANGE, (head) => $('#head').textContent = head.height);
+
+            $('#update-balance').addEventListener('click', () => client
+                .getBalance('NQ02 YP68 BA76 0KR3 QY9C SF0K LP8Q THB6 LTKU')
+                .then(balances => $('#balance').textContent = balances.get('NQ02 YP68 BA76 0KR3 QY9C SF0K LP8Q THB6 LTKU'))
+            );
+        }
+
+        main();
+    </script>
+</body>
+</html>
