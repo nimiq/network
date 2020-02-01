@@ -1,6 +1,9 @@
 import { EventClient, EventCallback } from '@nimiq/rpc-events';
 
-type TransactionReceipt = import ('@nimiq/core-web').TransactionReceipt;
+type PlainNimiqTransaction = ReturnType<import ('@nimiq/core-web').Transaction["toPlain"]>;
+type PlainNimiqTransactionReceipt = ReturnType<import ('@nimiq/core-web').TransactionReceipt["toPlain"]>;
+type PlainNimiqTransactionDetails = ReturnType<import ('@nimiq/core-web').Client.TransactionDetails["toPlain"]>;
+type PlainNimiqVestingContract = ReturnType<import ('@nimiq/core-web').VestingContract["toPlain"]>;
 
 // tslint:disable:interface-over-type-literal
 export type PlainTransaction = {
@@ -184,16 +187,33 @@ class NetworkClient {
         return this._eventClient.call('requestTransactionHistory', addresses, knownReceipts, fromHeight);
     }
 
-    public async requestTransactionReceipts(addresses: string): Promise<TransactionReceipt[]> {
-        return this._eventClient.call('requestTransactionReceipts', addresses);
+    public async requestTransactionReceipts(addresses: string, limit?: number): Promise<PlainNimiqTransactionReceipt[]> {
+        return this._eventClient.call('requestTransactionReceipts', addresses, limit);
     }
 
-    public async getGenesisVestingContracts(): Promise<PlainVestingContract[]> {
-        return this._eventClient.call('getGenesisVestingContracts');
+    public async getGenesisVestingContracts(): Promise<PlainVestingContract[]>
+    public async getGenesisVestingContracts(modern: true): Promise<PlainNimiqVestingContract[]> // MODERN
+    public async getGenesisVestingContracts(modern?: boolean): Promise<(PlainVestingContract|PlainNimiqVestingContract)[]> {
+        return this._eventClient.call('getGenesisVestingContracts', modern);
     }
 
     public async removeTxFromMempool(txObj: PlainTransaction): Promise<boolean> {
         return this._eventClient.call('removeTxFromMempool', txObj);
+    }
+
+    // MODERN
+
+    public async sendTransaction(tx: PlainNimiqTransaction): Promise<PlainNimiqTransactionDetails> {
+        return this._eventClient.call('sendTransaction', tx);
+    }
+
+    public async getTransactionsByAddress(
+        address: string,
+        sinceHeight?: number,
+        knownDetails?: PlainNimiqTransactionDetails[],
+        limit?: number
+    ): Promise<PlainNimiqTransactionDetails[]> {
+        return this._eventClient.call('getTransactionsByAddress', address, sinceHeight, knownDetails, limit);
     }
 
     // Getter
@@ -270,6 +290,12 @@ namespace NetworkClient { // tslint:disable-line:no-namespace
         TRANSACTION_MINED = 'nimiq-transaction-mined',
         TRANSACTION_RELAYED = 'nimiq-transaction-relayed',
         HEAD_CHANGE = 'nimiq-head-change',
+
+        HEAD_HEIGHT = 'head-height',
+        CONSENSUS = 'consensus',
+        BALANCES = 'balances',
+        TRANSACTION = 'transaction',
+        PEER_COUNT = 'peer-count',
     }
 }
 

@@ -1,7 +1,7 @@
 import { EventServer } from '@nimiq/rpc-events';
-import { NanoNetworkApi } from '@nimiq/nano-api';
+import { NanoApi } from '@nimiq/nano-api';
 
-export class Network extends NanoNetworkApi {
+export class Network extends NanoApi {
     /**
      * @param {{cdn: string, network: string}} config
      */
@@ -21,9 +21,13 @@ export class Network extends NanoNetworkApi {
             'requestTransactionHistory',
             (state, addresses, knownReceipts, fromHeight) => this.requestTransactionHistory(addresses, knownReceipts, fromHeight),
         );
-        this._eventServer.onRequest('requestTransactionReceipts', (state, address) => this.requestTransactionReceipts(address));
-        this._eventServer.onRequest('getGenesisVestingContracts', (state, arg) => this.getGenesisVestingContracts(arg));
+        this._eventServer.onRequest('requestTransactionReceipts', (state, address, limit) => this.requestTransactionReceipts(address, limit));
+        this._eventServer.onRequest('getGenesisVestingContracts', (state, modern) => this.getGenesisVestingContracts(modern));
         this._eventServer.onRequest('removeTxFromMempool', (state, arg) => this.removeTxFromMempool(arg));
+
+        // Modern
+        this._eventServer.onRequest('sendTransaction', (state, tx) => this.sendTransaction(tx));
+        this._eventServer.onRequest('getTransactionsByAddress', (state, address, sinceHeight, knownDetails, limit) => this.getTransactionsByAddress(address, sinceHeight, knownDetails, limit));
     }
 
     fire(event, data) {
