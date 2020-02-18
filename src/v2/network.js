@@ -352,10 +352,13 @@ export class Network extends NanoNetworkApi {
 		});
 	}
 
-	// decides between 3 functions returnign a promise.
-	// a - if we know our place and our place is as the source node.
-	// b - if we know our place and our place is not as the source (optional, otherwise nothing).
-	// c - if we don't know our place (optional, otherwise attempt again in 1 second).
+	/**
+	 * Decides between 3 functions, returning a promise.
+	 *
+	 * @param {Function} a - If we know our place and our place is as the source node.
+	 * @param {Function} [b] - If we know our place and our place is not as the source (optional, otherwise nothing).
+	 * @param {Function} [c] - If we don't know our place (optional, otherwise attempt again in 1 second).
+	 */
 	async decide(a, b, c) {
 		if (this._knowsPlace) {
 			if (this._sourceNode) {
