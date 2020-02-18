@@ -203,7 +203,7 @@ class NetworkClient {
 
     // MODERN
 
-    public async sendTransaction(tx: PlainNimiqTransaction): Promise<PlainNimiqTransactionDetails> {
+    public async sendTransaction(tx: PlainNimiqTransaction | string): Promise<PlainNimiqTransactionDetails> {
         return this._eventClient.call('sendTransaction', tx);
     }
 
