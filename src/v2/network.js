@@ -5,7 +5,7 @@ const CAN_BROADCAST = "BroadcastChannel" in window;
 
 // Time to wait in seconds before deciding that we are the source node for sure.
 // Communication via broadcast channels is incredibly fast, so this number can probably come down a lot.
-const PATIENCE_TIME = 3;
+const PATIENCE_TIME = 0.5; // seconds
 function buildFWithLength(len, call = () => {}) {
 	const fLengths = [
 		() => call(),
@@ -54,10 +54,10 @@ export class Network extends NanoNetworkApi {
 		window.network = this;
 
 		this._eventServer = new EventServer();
-		this._broadcastChannel = CAN_BROADCAST ? new BroadcastChannel("nimiq-rpc") : {
-			postMessage : () => { },
-			onmessage : () => { }
-		};
+
+		this._connectedPromise = new Promise(res => {
+			this._connectedPromiseResolver = res;
+		});
 
 		// If we can't use broadcast channels, we know our place and it's as our own source node.
 		this._knowsPlace = CAN_BROADCAST ? false : true;
@@ -77,7 +77,7 @@ export class Network extends NanoNetworkApi {
 		this._consensusState = '';
 
 		// Define RPC calls.
-		const interestingEvents = [
+		this._rpcMethods = [
 			{
 				name : "connect",
 				runs : async () => {
@@ -137,7 +137,7 @@ export class Network extends NanoNetworkApi {
 		];
 
 		// Register RPC calls.
-		interestingEvents.forEach(e => {
+		this._rpcMethods.forEach(e => {
 			let f = buildFWithLength(e.runs.length, async (...args) => {
 				return this.decide(() => {
 					return e.runs(...args);
@@ -148,167 +148,185 @@ export class Network extends NanoNetworkApi {
 
 			this._eventServer.onRequest(e.name, f);
 		});
+	}
 
-		setTimeout(() => {
-			if (!this._knowsPlace) {
-				this._knowsPlace = true;
-				// Had alrady assumed we were the source node.
-			}
-		}, PATIENCE_TIME * 1000);
+	setUpBroadcasting() {
+		this._broadcastChannel = CAN_BROADCAST ? new BroadcastChannel("nimiq-rpc") : {
+			postMessage: () => { },
+			onmessage: () => { },
+		};
 
-		this._broadcastChannel.onmessage = (message) => {
-			if (typeof message.data != "object" || !("type" in message.data)) {
-				return;
-			}
+		return new Promise(resolve => {
+			setTimeout(() => {
+				if (!this._knowsPlace) {
+					this._knowsPlace = true;
+					// Had alrady assumed we were the source node.
+					console.log("Timeout! - We are now the source");
+					resolve();
+				}
+			}, PATIENCE_TIME * 1000);
 
-			if (message.data.type == "nimiq-network-ping") {
-				if (message.data.pingingSource && message.data.pingingSource != this._myID) {
+			this._broadcastChannel.onmessage = (message) => {
+				if (typeof message.data != "object" || !("type" in message.data)) {
 					return;
 				}
 
-				this.decide(() => {
-					if (!this._dependents.includes(message.data.senderID)) {
-						this._dependents.push(message.data.senderID);
-					}
+				console.debug("Broadcast RECEIVE", message.data);
 
-					this.broadcast({
-						type: "nimiq-network-pong",
-						info: {
-							peers: this._peerCount,
-							block: this._headBlock,
-							state: this._consensusState
-						}
-					}, message.target);
-				});
-			} else if (message.data.type == "nimiq-network-pong") {
-				// We've received a response and now know we are not the source.
-				this._knowsPlace = true;
-				this._isSource = false;
-				this._mySource = message.data.senderID;
-				this._sourceInfo = message.data.info;
-			} else if (message.data.type == "nimiq-network-goodbye") {
-				// We've received notification that the source node is leaving us.
-				// We now suggest that the node first seen by the previous source, be the new source.
-				// If that node hasn't responded accepting it's role as the new source in PATIENCE_TIME seconds, suggest the next source.
-
-				this._mySource = 0;
-
-				let suggestSource = (selectFrom, selectWhich) => {
-					this.broadcast({
-						type  : "nimiq-network-suggestion",
-						suggestion : selectFrom[selectWhich],
-						priority : selectWhich
-					}, message.target);
-
-					this._suggestionTracker = setTimeout(() => {
-						if (this._mySource == 0) {
-							if (selectWhich < selectFrom.length - 1) {
-								suggestSource(selectFrom, selectWhich + 1);
-							} else {
-								this._isSource = true;
-							}
-						}
-					}, PATIENCE_TIME * 1000);
-				};
-
-				suggestSource(message.data.successors, 0);
-			} else if (message.data.type == "nimiq-network-suggestion") {
-				// We've received a suggestion for a new source node.
-				// If we were the node suggested, we respond and accept the responsibility.
-				// If we were not the node suggested, we ignore the message and wait for the suggested node to accept or for another suggestion.
-
-				if (message.data.suggestion == this._myID) {
-					this.broadcast({
-						type : "nimiq-network-accepted",
-						priority : message.data.priority
-					}, message.target);
-					clearTimeout(this._suggestionTracker);
-
-					this._acceptedPriority = message.data.priority;
-					this._isSource = true;
-					setTimeout(() => this.connect(), 0);
-				}
-			} else if (message.data.type == "nimiq-network-accepted") {
-				// We've received a response and have found our new source node.
-
-				// To prevent someone tricking us into leaving our source.
-				if (this._mySource != 0) {
-					return;
-				}
-
-				if (this._acceptedPriority) {
-					if (message.data.priority < this._acceptedPriority) {
-						// We've previously accepted being a source node, but us being picked was a mistake (messages go too fast / too slow sometimes and two nodes may accept being the source).
-						// If there is a way to disconnect the node we should do so, otherwise we're just going to ignore our node and request from the source.
-
-						//this.disconnect(); ???
-					} else {
-						// We've previously accepted being a source node, and another node mistakenly also accepted.
-						// We ignore this accepted message and hope that the mistaken source node sees our accepted message and realizes it's mistake.
+				if (message.data.type == "nimiq-network-ping") {
+					if (message.data.targetId && message.data.targetId !== this._myID) {
 						return;
 					}
-				}
 
-				this._mySource = message.data.senderID;
-				this._isSource = false;
-				this._acceptedPriority = 0;
-
-				this.broadcast({
-					type : "nimiq-network-ping",
-					pingingSource : this._mySource
-				});
-			} else if (message.data.type == "nimiq-network-fire") {
-				if (message.data.senderID == this._mySource) {
-					this.fire(message.data.event, message.data.data);
-				}
-			} else if (message.data.type == "nimiq-network-request") {
-				let requestedEvent = interestingEvents.filter(e => e.name == message.data.request);
-				if (requestedEvent.length > 0) {
-					replaceSource(message.data.args, window);
-					requestedEvent[0].runs(...message.data.args).then(r => {
-						replaceSource(message.data.args);
-						this.broadcast({
-							type : "nimiq-network-response",
-							request : message.data.request,
-							args : message.data.args,
-							response : r,
-							respondingToSender : message.data.senderID,
-							respondingToMessage : message.data.messageID
-						}, message.target);
-					})
-				}
-			} else if (message.data.type == "nimiq-network-response") {
-				// Only process messages sent from our source node.
-				// Only process messages specifically sent to us.
-				// Only process messages of a type that we are awaiting responses for.
-				if (message.data.senderID == this._mySource && message.data.respondingToSender == this._myID && message.data.request in this._needsResponse && this._needsResponse[message.data.request].length > 0) {
-					let stillNeedsResponse = [];
-
-					this._needsResponse[message.data.request].forEach(r => {
-						// If the response has the same args as the request, resolve that request.
-						if (message.data.respondingToMessage == r.id) {
-							r.resolve(message.data.response);
-						} else {
-							stillNeedsResponse.push(r);
+					this.decide(() => {
+						if (!this._dependents.includes(message.data.senderID)) {
+							this._dependents.push(message.data.senderID);
 						}
-					});
 
-					// This pattern felt cleaner than a filter here using the negative of the condition used in if statement in the forEach above.
-					this._needsResponse[message.data.request] = stillNeedsResponse;
+						this.broadcast({
+							type: "nimiq-network-pong",
+							info: {
+								peers: this._peerCount,
+								block: this._headBlock,
+								state: this._consensusState
+							}
+						}, message.target);
+					});
+				} else if (message.data.type == "nimiq-network-pong") {
+					// We've received a response and now know we are not the source.
+					this._knowsPlace = true;
+					this._isSource = false;
+					this._mySource = message.data.senderID;
+					this._sourceInfo = message.data.info;
+					console.log("Got PONG! - We are not the source");
+					resolve();
+				} else if (message.data.type == "nimiq-network-goodbye") {
+					// We've received notification that the source node is leaving us.
+					// We now suggest that the node first seen by the previous source, be the new source.
+					// If that node hasn't responded accepting it's role as the new source in PATIENCE_TIME seconds, suggest the next source.
+
+					this._mySource = 0;
+
+					let suggestSource = (selectFrom, selectWhich) => {
+						this.broadcast({
+							type: "nimiq-network-suggestion",
+							suggestion: selectFrom[selectWhich],
+							priority: selectWhich
+						}, message.target);
+
+						this._suggestionTracker = setTimeout(() => {
+							if (this._mySource == 0) {
+								if (selectWhich < selectFrom.length - 1) {
+									suggestSource(selectFrom, selectWhich + 1);
+								} else {
+									this._isSource = true;
+								}
+							}
+						}, PATIENCE_TIME * 1000);
+					};
+
+					suggestSource(message.data.successors, 0);
+				} else if (message.data.type == "nimiq-network-suggestion") {
+					// We've received a suggestion for a new source node.
+					// If we were the node suggested, we respond and accept the responsibility.
+					// If we were not the node suggested, we ignore the message and wait for the suggested node to accept or for another suggestion.
+
+					if (message.data.suggestion === this._myID) {
+						console.log("Source LEFT - We are now the source");
+						this.broadcast({
+							type: "nimiq-network-accepted",
+							priority: message.data.priority
+						}, message.target);
+						clearTimeout(this._suggestionTracker);
+
+						this._acceptedPriority = message.data.priority;
+						this._isSource = true;
+						setTimeout(() => this.connect(), 0);
+					}
+				} else if (message.data.type == "nimiq-network-accepted") {
+					// We've received a response and have found our new source node.
+
+					// To prevent someone tricking us into leaving our source.
+					if (this._mySource !== 0) {
+						return;
+					}
+
+					if (this._acceptedPriority) {
+						if (message.data.priority < this._acceptedPriority) {
+							// We've previously accepted being a source node, but us being picked was a mistake (messages go too fast / too slow sometimes and two nodes may accept being the source).
+							// If there is a way to disconnect the node we should do so, otherwise we're just going to ignore our node and request from the source.
+
+							//this.disconnect(); ???
+						} else {
+							// We've previously accepted being a source node, and another node mistakenly also accepted.
+							// We ignore this accepted message and hope that the mistaken source node sees our accepted message and realizes it's mistake.
+							return;
+						}
+					}
+
+					console.log("Source LEFT! - We are still not the source");
+
+					this._mySource = message.data.senderID;
+					this._isSource = false;
+					this._acceptedPriority = 0;
+
+					this.broadcast({
+						type : "nimiq-network-ping",
+						targetId : this._mySource
+					});
+				} else if (message.data.type == "nimiq-network-fire") {
+					if (message.data.senderID == this._mySource) {
+						this.fire(message.data.event, message.data.data);
+					}
+				} else if (message.data.type == "nimiq-network-request") {
+					let requestedEvent = this._rpcMethods.find(e => e.name === message.data.request);
+					if (requestedEvent) {
+						replaceSource(message.data.args, window);
+						requestedEvent.runs(...message.data.args).then(response => {
+							replaceSource(message.data.args);
+							this.broadcast({
+								type : "nimiq-network-response",
+								request : message.data.request,
+								args : message.data.args,
+								response,
+								respondingToSender : message.data.senderID,
+								respondingToMessage : message.data.messageID,
+							}, message.target);
+						})
+					}
+				} else if (message.data.type == "nimiq-network-response") {
+					// Only process messages sent from our source node.
+					// Only process messages specifically sent to us.
+					// Only process messages of a type that we are awaiting responses for.
+					if (message.data.senderID == this._mySource && message.data.respondingToSender == this._myID && message.data.request in this._needsResponse && this._needsResponse[message.data.request].length > 0) {
+						let stillNeedsResponse = [];
+
+						this._needsResponse[message.data.request].forEach(r => {
+							// If the response has the same args as the request, resolve that request.
+							if (message.data.respondingToMessage == r.id) {
+								r.resolve(message.data.response);
+							} else {
+								stillNeedsResponse.push(r);
+							}
+						});
+
+						// This pattern felt cleaner than a filter here using the negative of the condition used in if statement in the forEach above.
+						this._needsResponse[message.data.request] = stillNeedsResponse;
+					}
 				}
-			}
-		};
-		window.addEventListener('beforeunload', (event) => {
-			this.decide(() => {
-				this.broadcast({
-					type : "nimiq-network-goodbye",
-					successors : this._dependents
+			};
+			window.addEventListener('beforeunload', (event) => {
+				this.decide(() => {
+					this.broadcast({
+						type : "nimiq-network-goodbye",
+						successors : this._dependents
+					});
 				});
 			});
-		});
 
-		this.broadcast({
-			type : "nimiq-network-ping",
+			this.broadcast({
+				type : "nimiq-network-ping",
+			});
 		});
 	}
 
@@ -317,6 +335,7 @@ export class Network extends NanoNetworkApi {
 		message.senderID = this._myID;
 		message.messageID = messageID;
 
+		console.debug("Broadcast SEND", message);
 		channel.postMessage(message);
 		return messageID;
 	}
@@ -330,7 +349,7 @@ export class Network extends NanoNetworkApi {
 			let win = replaceSource(args);
 
 			// Request a response from the source node.
-			let mid = this.broadcast({
+			let id = this.broadcast({
 				type : "nimiq-network-request",
 				request : method,
 				args : args
@@ -338,17 +357,17 @@ export class Network extends NanoNetworkApi {
 
 			// Register promise callbacks for when response comes in.
 			this._needsResponse[method].push({
-				resolve : function (...vals) {
+				resolve: function (...vals) {
 					replaceSource(args, this.win);
 					res(...vals);
 				},
-				reject : function (...vals) {
+				reject: function (...vals) {
 					replaceSource(args, this.win);
 					rej(...vals);
 				},
-				args : args,
-				win : win,
-				id : mid
+				args: args,
+				win: win,
+				id,
 			});
 		});
 	}
@@ -381,10 +400,26 @@ export class Network extends NanoNetworkApi {
 		}
 	}
 
-	fire(event, data) {
+	async fire(event, data) {
+		await this._connectedPromise;
+
 		this._eventServer.fire(event, data);
 
-		if (event != "nimiq-api-ready") {
+		if (event === "nimiq-api-ready") {
+			if (this._sourceInfo) {
+				if (this._sourceInfo.peers) {
+					this.fire("nimiq-peer-count", this._sourceInfo.peers);
+				}
+
+				if (this._sourceInfo.block) {
+					this.fire("nimiq-head-change", this._sourceInfo.block);
+				}
+
+				if (this._sourceInfo.state) {
+					this.fire(this._sourceInfo.state);
+				}
+			}
+		} else {
 			this.decide(() => {
 				if (event == "nimiq-peer-count") {
 					this._peerCount = data;
@@ -400,28 +435,18 @@ export class Network extends NanoNetworkApi {
 					data,
 				});
 			});
-		} else {
-			if (this._sourceInfo) {
-				if (this._sourceInfo.peers) {
-					this.fire("nimiq-peer-count", this._sourceInfo.peers);
-				}
-
-				if (this._sourceInfo.block) {
-					this.fire("nimiq-head-change", this._sourceInfo.block);
-				}
-
-				if (this._sourceInfo.state) {
-					this.fire(this._sourceInfo.state);
-				}
-			}
 		}
 	}
 
-	connect() {
-		return this.decide(() => {
+	async connect() {
+		await this.setUpBroadcasting();
+		await this.decide(() => {
 			return super.connect();
 		}, () => {
 			return true;
 		});
+		// Start firing events
+		console.log('Connected');
+		this._connectedPromiseResolver();
 	}
 }
