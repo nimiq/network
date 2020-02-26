@@ -217,6 +217,15 @@ export class Network extends NanoNetworkApi {
 					console.log("Got PONG! - We are not the source");
 					resolve();
 				} else if (message.data.type == "nimiq-network-goodbye") {
+					if (!message.data.successors) {
+						// A non-source node left, remove it from dependants to avoid cycling through it
+						// during source negotiations.
+						this.decide(() => {
+							this._dependents = this._dependents.filter(id => id !== message.data.senderID);
+						});
+						return;
+					}
+
 					// We've received notification that the source node is leaving us.
 					// We now suggest that the node first seen by the previous source, be the new source.
 					// If that node hasn't responded accepting it's role as the new source in PATIENCE_TIME seconds, suggest the next source.
@@ -338,6 +347,10 @@ export class Network extends NanoNetworkApi {
 					this.broadcast({
 						type : "nimiq-network-goodbye",
 						successors : this._dependents
+					});
+				}, () => {
+					this.broadcast({
+						type : "nimiq-network-goodbye",
 					});
 				});
 			});
