@@ -2,6 +2,7 @@ import { EventServer } from '@nimiq/rpc-events';
 import { NanoNetworkApi } from '@nimiq/nano-api';
 
 const CAN_BROADCAST = "BroadcastChannel" in window;
+
 // Time to wait in seconds before deciding that we are the source node for sure.
 // Communication via broadcast channels is incredibly fast, so this number can probably come down a lot.
 const PATIENCE_TIME = 3;
@@ -60,7 +61,7 @@ export class Network extends NanoNetworkApi {
 
 		// If we can't use broadcast channels, we know our place and it's as our own source node.
 		this._knowsPlace = CAN_BROADCAST ? false : true;
-		this._sourceNode = true;
+		this._isSource = true;
 		this._needsResponse = { };
 
 		this._myID = RandomUtils.generateRandomId();
@@ -71,9 +72,9 @@ export class Network extends NanoNetworkApi {
 		this._acceptedPriority = 0;
 
 		this._sourceInfo = null;
-		this._sourcePeerCount = 0;
-		this._sourceBlockInfo = null;
-		this._sourceConsensusState = "";
+		this._peerCount = 0;
+		this._headBlock = null;
+		this._consensusState = '';
 
 		// Define RPC calls.
 		const interestingEvents = [
@@ -141,7 +142,7 @@ export class Network extends NanoNetworkApi {
 				return this.decide(() => {
 					return e.runs(...args);
 				}, () => {
-					return this.requestResponse(e.name, args);
+					return this.broadcastRequest(e.name, args);
 				});
 			});
 
@@ -170,19 +171,19 @@ export class Network extends NanoNetworkApi {
 						this._dependents.push(message.data.senderID);
 					}
 
-					this.sendMessageToFrames({
-						type : "nimiq-network-pong",
-						info : {
-							peers  : this._sourcePeerCount,
-							block : this._sourceBlockInfo,
-							state  : this._sourceConsensusState
+					this.broadcast({
+						type: "nimiq-network-pong",
+						info: {
+							peers: this._peerCount,
+							block: this._headBlock,
+							state: this._consensusState
 						}
 					}, message.target);
 				});
 			} else if (message.data.type == "nimiq-network-pong") {
 				// We've received a response and now know we are not the source.
 				this._knowsPlace = true;
-				this._sourceNode = false;
+				this._isSource = false;
 				this._mySource = message.data.senderID;
 				this._sourceInfo = message.data.info;
 			} else if (message.data.type == "nimiq-network-goodbye") {
@@ -193,7 +194,7 @@ export class Network extends NanoNetworkApi {
 				this._mySource = 0;
 
 				let suggestSource = (selectFrom, selectWhich) => {
-					this.sendMessageToFrames({
+					this.broadcast({
 						type  : "nimiq-network-suggestion",
 						suggestion : selectFrom[selectWhich],
 						priority : selectWhich
@@ -204,7 +205,7 @@ export class Network extends NanoNetworkApi {
 							if (selectWhich < selectFrom.length - 1) {
 								suggestSource(selectFrom, selectWhich + 1);
 							} else {
-								this._sourceNode = true;
+								this._isSource = true;
 							}
 						}
 					}, PATIENCE_TIME * 1000);
@@ -217,14 +218,14 @@ export class Network extends NanoNetworkApi {
 				// If we were not the node suggested, we ignore the message and wait for the suggested node to accept or for another suggestion.
 
 				if (message.data.suggestion == this._myID) {
-					this.sendMessageToFrames({
+					this.broadcast({
 						type : "nimiq-network-accepted",
 						priority : message.data.priority
 					}, message.target);
 					clearTimeout(this._suggestionTracker);
 
 					this._acceptedPriority = message.data.priority;
-					this._sourceNode = true;
+					this._isSource = true;
 					setTimeout(() => this.connect(), 0);
 				}
 			} else if (message.data.type == "nimiq-network-accepted") {
@@ -249,10 +250,10 @@ export class Network extends NanoNetworkApi {
 				}
 
 				this._mySource = message.data.senderID;
-				this._sourceNode = false;
+				this._isSource = false;
 				this._acceptedPriority = 0;
 
-				this.sendMessageToFrames({
+				this.broadcast({
 					type : "nimiq-network-ping",
 					pingingSource : this._mySource
 				});
@@ -266,7 +267,7 @@ export class Network extends NanoNetworkApi {
 					replaceSource(message.data.args, window);
 					requestedEvent[0].runs(...message.data.args).then(r => {
 						replaceSource(message.data.args);
-						this.sendMessageToFrames({
+						this.broadcast({
 							type : "nimiq-network-response",
 							request : message.data.request,
 							args : message.data.args,
@@ -299,19 +300,19 @@ export class Network extends NanoNetworkApi {
 		};
 		window.addEventListener('beforeunload', (event) => {
 			this.decide(() => {
-				this.sendMessageToFrames({
+				this.broadcast({
 					type : "nimiq-network-goodbye",
 					successors : this._dependents
 				});
 			});
 		});
 
-		this.sendMessageToFrames({
+		this.broadcast({
 			type : "nimiq-network-ping",
 		});
 	}
 
-	sendMessageToFrames(message, channel = this._broadcastChannel) {
+	broadcast(message, channel = this._broadcastChannel) {
 		let messageID = RandomUtils.generateRandomId();
 		message.senderID = this._myID;
 		message.messageID = messageID;
@@ -320,7 +321,7 @@ export class Network extends NanoNetworkApi {
 		return messageID;
 	}
 
-	requestResponse(method, args) {
+	broadcastRequest(method, args) {
 		return new Promise((res, rej) => {
 			if (!(method in this._needsResponse)) {
 				this._needsResponse[method] = [];
@@ -329,7 +330,7 @@ export class Network extends NanoNetworkApi {
 			let win = replaceSource(args);
 
 			// Request a response from the source node.
-			let mid = this.sendMessageToFrames({
+			let mid = this.broadcast({
 				type : "nimiq-network-request",
 				request : method,
 				args : args
@@ -361,7 +362,7 @@ export class Network extends NanoNetworkApi {
 	 */
 	async decide(a, b, c) {
 		if (this._knowsPlace) {
-			if (this._sourceNode) {
+			if (this._isSource) {
 				return a();
 			} else if (b) {
 				return b();
@@ -386,17 +387,17 @@ export class Network extends NanoNetworkApi {
 		if (event != "nimiq-api-ready") {
 			this.decide(() => {
 				if (event == "nimiq-peer-count") {
-					this._sourcePeerCount = data;
+					this._peerCount = data;
 				} else if (event == "nimiq-head-change") {
-					this._sourceBlockInfo = data;
+					this._headBlock = data;
 				} else if (event.startsWith("nimiq-consensus")) {
-					this._sourceConsensusState = event;
+					this._consensusState = event;
 				}
 
-				this.sendMessageToFrames({
-					type : "nimiq-network-fire",
-					event : event,
-					data : data
+				this.broadcast({
+					type: "nimiq-network-fire",
+					event,
+					data,
 				});
 			});
 		} else {
