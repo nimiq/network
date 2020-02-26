@@ -55,8 +55,24 @@ export class Network extends NanoNetworkApi {
 
 		this._eventServer = new EventServer();
 
-		this._connectedPromise = new Promise(res => {
-			this._connectedPromiseResolver = res;
+		// Public promise to communicate when an RPC client is connected.
+		// Used by autostart.js to only trigger connect() after a client
+		// is connected, so no events are fired before.
+		this.rpcConnectedPromise = new Promise(res => {
+			this._rpcConnectedPromiseResolver = res;
+		});
+		// Overwrite 'ping' handler of RpcEventServer, to detect a client connection.
+		this._eventServer.onRequest('ping', () => {
+			console.log('RPC connected');
+			this._rpcConnectedPromiseResolver();
+			return 'pong';
+		});
+
+		// Internal promise to track broadcast and Nimiq connection status.
+		// Used to make sure events are only fired once we know if we are
+		// the source or not and the broadcasting channel is set up.
+		this._nimiqConnectedPromise = new Promise(res => {
+			this._nimiqConnectedPromiseResolver = res;
 		});
 
 		// If we can't use broadcast channels, we know our place and it's as our own source node.
@@ -160,7 +176,7 @@ export class Network extends NanoNetworkApi {
 			setTimeout(() => {
 				if (!this._knowsPlace) {
 					this._knowsPlace = true;
-					// Had alrady assumed we were the source node.
+					// Had alrady assumed we are the source node.
 					console.log("Timeout! - We are now the source");
 					resolve();
 				}
@@ -208,11 +224,13 @@ export class Network extends NanoNetworkApi {
 					this._mySource = 0;
 
 					let suggestSource = (selectFrom, selectWhich) => {
-						this.broadcast({
+						const cast = {
 							type: "nimiq-network-suggestion",
 							suggestion: selectFrom[selectWhich],
 							priority: selectWhich
-						}, message.target);
+						};
+						this.broadcast(cast, message.target); // Broadcast,
+						this._broadcastChannel.onmessage({data: cast}); // but also send to ourselves so we can react if we are the suggestion
 
 						this._suggestionTracker = setTimeout(() => {
 							if (this._mySource == 0) {
@@ -241,7 +259,7 @@ export class Network extends NanoNetworkApi {
 
 						this._acceptedPriority = message.data.priority;
 						this._isSource = true;
-						setTimeout(() => this.connect(), 0);
+						super.connect();
 					}
 				} else if (message.data.type == "nimiq-network-accepted") {
 					// We've received a response and have found our new source node.
@@ -327,6 +345,11 @@ export class Network extends NanoNetworkApi {
 			this.broadcast({
 				type : "nimiq-network-ping",
 			});
+
+			if (!CAN_BROADCAST) {
+				console.log("Broadcast API not available! - We are the source");
+				resolve();
+			}
 		});
 	}
 
@@ -401,7 +424,7 @@ export class Network extends NanoNetworkApi {
 	}
 
 	async fire(event, data) {
-		await this._connectedPromise;
+		await this._nimiqConnectedPromise;
 
 		this._eventServer.fire(event, data);
 
@@ -447,6 +470,6 @@ export class Network extends NanoNetworkApi {
 		});
 		// Start firing events
 		console.log('Connected');
-		this._connectedPromiseResolver();
+		this._nimiqConnectedPromiseResolver();
 	}
 }

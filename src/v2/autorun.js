@@ -18,4 +18,6 @@ function getConfig() {
 }
 
 const network = new Network(getConfig());
-network.connect().catch(console.error);
+network.rpcConnectedPromise
+    .then(() => network.connect())
+    .catch(console.error);
