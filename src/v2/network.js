@@ -90,28 +90,28 @@ export class Network extends NanoNetworkApi {
 				}
 			}, {
 				name : "relayTransaction",
-				runs : async (state, arg) => {
-					return this.relayTransaction(arg);
+				runs : async (state, txObj) => {
+					return this.relayTransaction(txObj);
 				}
 			}, {
 				name : "getTransactionSize",
-				runs : async (state, arg) => {
-					return this.getTransactionSize(arg);
+				runs : async (state, txObj) => {
+					return this.getTransactionSize(txObj);
 				}
 			}, {
 				name : "subscribe",
-				runs : async (state, arg) => {
-					return this.subscribe(arg);
+				runs : async (state, addresses) => {
+					return this.subscribe(addresses);
 				}
 			}, {
 				name : "getBalance",
-				runs : async (state, arg) => {
-					return this.getBalance(arg);
+				runs : async (state, addresses) => {
+					return this.getBalance(addresses);
 				}
 			}, {
 				name : "getAccountTypeString",
-				runs : async (state, arg) => {
-					return this.getAccountTypeString(arg);
+				runs : async (state, address) => {
+					return this.getAccountTypeString(address);
 				}
 			}, {
 				name : "requestTransactionHistory",
@@ -120,18 +120,18 @@ export class Network extends NanoNetworkApi {
 				}
 			}, {
 				name : "requestTransactionReceipts",
-				runs : async (state, arg) => {
-					return this.requestTransactionReceipts(arg);
+				runs : async (state, address) => {
+					return this.requestTransactionReceipts(address);
 				}
 			}, {
 				name : "getGenesisVestingContracts",
-				runs : async (state, arg) => {
-					return this.getGenesisVestingContracts(arg);
+				runs : async (state) => {
+					return this.getGenesisVestingContracts();
 				}
 			}, {
 				name : "removeTxFromMempool",
-				runs : async (state, arg) => {
-					return this.removeTxFromMempool(arg);
+				runs : async (state, txObj) => {
+					return this.removeTxFromMempool(txObj);
 				}
 			}
 		];
