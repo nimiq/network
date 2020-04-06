@@ -24,6 +24,7 @@ export class Network extends NanoApi {
         this._eventServer.onRequest('requestTransactionReceipts', (state, address, limit) => this.requestTransactionReceipts(address, limit));
         this._eventServer.onRequest('getGenesisVestingContracts', (state, modern) => this.getGenesisVestingContracts(modern));
         this._eventServer.onRequest('removeTxFromMempool', (state, arg) => this.removeTxFromMempool(arg));
+        this._eventServer.onRequest('getKnownAddresses', (state) => this.getKnownAddresses());
 
         // Modern
         this._eventServer.onRequest('sendTransaction', (state, tx) => this.sendTransaction(tx));

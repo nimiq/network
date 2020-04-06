@@ -38,6 +38,26 @@ export type PlainVestingContract = {
     stepBlocks: number,
     totalAmount: number,
 };
+
+export type PlainAddressInfo = {
+    state: number,
+    peerId: string,
+    peerAddress: {
+        _protocol: number,
+        _services: number,
+        _timestamp: number,
+        _netAddress: {
+            _type: number,
+            _ip: Uint8Array,
+            _reliable: boolean,
+        }
+        _publicKey: Uint8Array,
+        _distance: number,
+        _signature: Uint8Array,
+        _host: string,
+        _port: number,
+    },
+};
 // tslint:enable:interface-over-type-literal
 
 class NetworkClient {
@@ -201,6 +221,10 @@ class NetworkClient {
         return this._eventClient.call('removeTxFromMempool', txObj);
     }
 
+    public async getKnownAddresses(): Promise<PlainAddressInfo[]> {
+        return this._eventClient.call('getKnownAddresses');
+    }
+
     // MODERN
 
     public async sendTransaction(tx: PlainNimiqTransaction | string): Promise<PlainNimiqTransactionDetails> {
@@ -278,6 +302,7 @@ class NetworkClient {
 
 namespace NetworkClient { // tslint:disable-line:no-namespace
     export enum Events {
+        ADDRESSES_ADDED = 'addresses-added',
         API_READY = 'nimiq-api-ready',
         API_FAIL = 'nimiq-api-fail',
         CONSENSUS_SYNCING = 'nimiq-consensus-syncing',
