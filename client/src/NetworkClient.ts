@@ -38,6 +38,18 @@ export type PlainVestingContract = {
     stepBlocks: number,
     totalAmount: number,
 };
+
+export type PlainAddressInfo = {
+    banned: boolean,
+    connected: boolean,
+    netAddress: {
+        ip: Uint8Array,
+        reliable: boolean,
+    } | null,
+    peerAddress: string,
+    peerId: string,
+    services: Array<'FULL_BLOCKS'|'BLOCK_HISTORY'|'BLOCK_PROOF'|'CHAIN_PROOF'|'ACCOUNTS_PROOF'|'ACCOUNTS_CHUNKS'|'MEMPOOL'|'TRANSACTION_INDEX'|'BODY_PROOF'>,
+};
 // tslint:enable:interface-over-type-literal
 
 class NetworkClient {
@@ -201,6 +213,10 @@ class NetworkClient {
         return this._eventClient.call('removeTxFromMempool', txObj);
     }
 
+    public async getPeerAddresses(): Promise<PlainAddressInfo[]> {
+        return this._eventClient.call('getPeerAddresses');
+    }
+
     // MODERN
 
     public async sendTransaction(tx: PlainNimiqTransaction | string): Promise<PlainNimiqTransactionDetails> {
@@ -296,6 +312,7 @@ namespace NetworkClient { // tslint:disable-line:no-namespace
         BALANCES = 'balances',
         TRANSACTION = 'transaction',
         PEER_COUNT = 'peer-count',
+        PEER_ADDRESSES_ADDED = 'peer-addresses-added',
     }
 }
 
