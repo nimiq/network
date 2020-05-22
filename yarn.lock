@@ -14,10 +14,10 @@
   dependencies:
     "@nimiq/utils" "^0.3.3"
 
-"@nimiq/nano-api@^0.6.0-beta.1":
-  version "0.6.0-beta.1"
-  resolved "https://registry.yarnpkg.com/@nimiq/nano-api/-/nano-api-0.6.0-beta.1.tgz#13b4cf81ab52029c0d4b4d859ae8d4c2e92c8e9b"
-  integrity sha512-nd8wC57x/n1+l60NNifYfuSwg3CmIYyOjYOamGX4PnHntdpA86ACAyKvFOsGxUiaSvcP7BKONz9CTKOSFYvN8Q==
+"@nimiq/nano-api@^0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@nimiq/nano-api/-/nano-api-0.6.0.tgz#74d188eb88cdf838750472ddb0bd5f30fdfe853b"
+  integrity sha512-yZTl5z77gL+tM4vbS8NU4cIz/kdfqUPRPcauiuDpw/VLHFTpRNFazZetwMBAm+JYuAymoq8Q1gAS5x5AbLl/5Q==
   dependencies:
     "@nimiq/core-web" "^1.5.5"
     "@nimiq/utils" "^0.3.3"

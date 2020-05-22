@@ -40,23 +40,15 @@ export type PlainVestingContract = {
 };
 
 export type PlainAddressInfo = {
-    state: number,
+    banned: boolean,
+    connected: boolean,
+    netAddress: {
+        ip: Uint8Array,
+        reliable: boolean,
+    } | null,
+    peerAddress: string,
     peerId: string,
-    peerAddress: {
-        _protocol: number,
-        _services: number,
-        _timestamp: number,
-        _netAddress: {
-            _type: number,
-            _ip: Uint8Array,
-            _reliable: boolean,
-        }
-        _publicKey: Uint8Array,
-        _distance: number,
-        _signature: Uint8Array,
-        _host: string,
-        _port: number,
-    },
+    services: Array<'FULL_BLOCKS'|'BLOCK_HISTORY'|'BLOCK_PROOF'|'CHAIN_PROOF'|'ACCOUNTS_PROOF'|'ACCOUNTS_CHUNKS'|'MEMPOOL'|'TRANSACTION_INDEX'|'BODY_PROOF'>,
 };
 // tslint:enable:interface-over-type-literal
 
@@ -221,8 +213,8 @@ class NetworkClient {
         return this._eventClient.call('removeTxFromMempool', txObj);
     }
 
-    public async getKnownAddresses(): Promise<PlainAddressInfo[]> {
-        return this._eventClient.call('getKnownAddresses');
+    public async getPeerAddresses(): Promise<PlainAddressInfo[]> {
+        return this._eventClient.call('getPeerAddresses');
     }
 
     // MODERN
@@ -302,7 +294,6 @@ class NetworkClient {
 
 namespace NetworkClient { // tslint:disable-line:no-namespace
     export enum Events {
-        ADDRESSES_ADDED = 'addresses-added',
         API_READY = 'nimiq-api-ready',
         API_FAIL = 'nimiq-api-fail',
         CONSENSUS_SYNCING = 'nimiq-consensus-syncing',
@@ -321,6 +312,7 @@ namespace NetworkClient { // tslint:disable-line:no-namespace
         BALANCES = 'balances',
         TRANSACTION = 'transaction',
         PEER_COUNT = 'peer-count',
+        PEER_ADDRESSES_ADDED = 'peer-addresses-added',
     }
 }
 
