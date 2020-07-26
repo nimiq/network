@@ -96,7 +96,7 @@ class NetworkClient {
     private $iframe!: HTMLIFrameElement;
     private _initializationPromise?: Promise<void>;
     private _apiLoadingState: 'not-started' | 'ready' | 'failed' = 'not-started';
-    private _consensusState: 'syncing' | 'established' | 'lost' = 'syncing';
+    private _consensusState: 'connecting' | 'syncing' | 'established' | 'lost' = 'syncing';
     private _peerCount: number = 0;
     private _headInfo: { height: number, globalHashrate: number } = { height: 0, globalHashrate: 0 };
     private _balances: Map<string, number> = new Map<string, number>();
@@ -238,7 +238,7 @@ class NetworkClient {
         return this._apiLoadingState;
     }
 
-    public get consensusState(): 'syncing' | 'established' | 'lost' {
+    public get consensusState(): 'connecting' | 'syncing' | 'established' | 'lost' {
         return this._consensusState;
     }
 
