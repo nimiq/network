@@ -5,6 +5,8 @@ type PlainNimiqTransactionReceipt = ReturnType<import ('@nimiq/core-web').Transa
 type PlainNimiqTransactionDetails = ReturnType<import ('@nimiq/core-web').Client.TransactionDetails["toPlain"]>;
 type PlainNimiqVestingContract = ReturnType<import ('@nimiq/core-web').VestingContract["toPlain"]>;
 
+export type TransactionListener = (transaction: PlainNimiqTransactionDetails) => any;
+
 // tslint:disable:interface-over-type-literal
 export type PlainTransaction = {
     sender: string,
@@ -230,6 +232,12 @@ class NetworkClient {
         limit?: number
     ): Promise<PlainNimiqTransactionDetails[]> {
         return this._eventClient.call('getTransactionsByAddress', address, sinceHeight, knownDetails, limit);
+    }
+
+    public async addTransactionListener(listener: TransactionListener, addresses: string[]) {
+        const eventName = `transaction-listener-${Math.round(Math.random() * 1e8)}`;
+        this._eventClient.on(eventName, listener);
+        return this._eventClient.call('addTransactionListener', eventName, addresses);
     }
 
     // Getter
