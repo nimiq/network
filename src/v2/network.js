@@ -30,6 +30,7 @@ export class Network extends NanoApi {
         this._eventServer.onRequest('sendTransaction', (state, tx) => this.sendTransaction(tx));
         this._eventServer.onRequest('getTransactionsByAddress', (state, address, sinceHeight, knownDetails, limit) => this.getTransactionsByAddress(address, sinceHeight, knownDetails, limit));
         this._eventServer.onRequest('addTransactionListener', (state, eventName, addresses) => this.addTransactionListener(eventName, addresses));
+        this._eventServer.onRequest('removeListener', (state, handle) => this.removeListener(handle));
     }
 
     fire(event, data) {

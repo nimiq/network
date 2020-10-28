@@ -234,10 +234,14 @@ class NetworkClient {
         return this._eventClient.call('getTransactionsByAddress', address, sinceHeight, knownDetails, limit);
     }
 
-    public async addTransactionListener(listener: TransactionListener, addresses: string[]) {
+    public async addTransactionListener(listener: TransactionListener, addresses: string[]): Promise<number> {
         const eventName = `transaction-listener-${Math.round(Math.random() * 1e8)}`;
         this._eventClient.on(eventName, listener);
         return this._eventClient.call('addTransactionListener', eventName, addresses);
+    }
+
+    public async removeListener(handle: number): Promise<void> {
+        return this._eventClient.call('removeListener', handle);
     }
 
     // Getter
