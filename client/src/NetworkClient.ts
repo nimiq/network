@@ -182,7 +182,13 @@ class NetworkClient {
     }
 
     public async getBalance(addresses: string | string[]): Promise<Map<string, number>> {
-        return this._eventClient.call('getBalance', addresses) as Promise<Map<string, number>>;
+        return this._eventClient.call('getBalance', addresses);
+    }
+
+    public async getAccounts(
+        addresses: string | string[],
+    ): Promise<Array<ReturnType<import ('@nimiq/core-web').Account["toPlain"]> & {address: string}>> {
+        return this._eventClient.call('getAccounts', addresses);
     }
 
     public async getAccountTypeString(address: string): Promise<string|false> {

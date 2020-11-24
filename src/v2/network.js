@@ -16,6 +16,7 @@ export class Network extends NanoApi {
         this._eventServer.onRequest('getTransactionSize', (state, arg) => this.getTransactionSize(arg));
         this._eventServer.onRequest('subscribe', (state, arg) => this.subscribe(arg));
         this._eventServer.onRequest('getBalance', (state, arg) => this.getBalance(arg));
+        this._eventServer.onRequest('getAccounts', (state, arg) => this.getAccounts(arg));
         this._eventServer.onRequest('getAccountTypeString', (state, arg) => this.getAccountTypeString(arg));
         this._eventServer.onRequest(
             'requestTransactionHistory',
