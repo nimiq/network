@@ -4,8 +4,10 @@ type PlainNimiqTransaction = ReturnType<import ('@nimiq/core-web').Transaction["
 type PlainNimiqTransactionReceipt = ReturnType<import ('@nimiq/core-web').TransactionReceipt["toPlain"]>;
 type PlainNimiqTransactionDetails = ReturnType<import ('@nimiq/core-web').Client.TransactionDetails["toPlain"]>;
 type PlainNimiqVestingContract = ReturnType<import ('@nimiq/core-web').VestingContract["toPlain"]>;
+type ConsensusState = import ('@nimiq/core-web').Client.ConsensusState;
 
 export type TransactionListener = (transaction: PlainNimiqTransactionDetails) => any;
+export type ConsensusChangedListener = (consensusState: ConsensusState) => any;
 
 // tslint:disable:interface-over-type-literal
 export type PlainTransaction = {
@@ -244,6 +246,12 @@ class NetworkClient {
         const eventName = `transaction-listener-${Math.round(Math.random() * 1e8)}`;
         this._eventClient.on(eventName, listener);
         return this._eventClient.call('addTransactionListener', eventName, addresses);
+    }
+
+    public async addConsensusChangedListener(listener: ConsensusChangedListener): Promise<number> {
+        const eventName = `consensus-listener-${Math.round(Math.random() * 1e8)}`;
+        this._eventClient.on(eventName, listener);
+        return this._eventClient.call('addConsensusChangedListener', eventName);
     }
 
     public async removeListener(handle: number): Promise<void> {
