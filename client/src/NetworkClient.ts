@@ -254,6 +254,10 @@ class NetworkClient {
         return this._eventClient.call('addConsensusChangedListener', eventName);
     }
 
+    public async resetConsensus(): Promise<void> {
+        return this._eventClient.call('resetConsensus');
+    }
+
     public async removeListener(handle: number): Promise<void> {
         return this._eventClient.call('removeListener', handle);
     }
