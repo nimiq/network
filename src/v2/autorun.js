@@ -11,8 +11,8 @@ function getConfig() {
             };
         default:
             return {
-                // cdn: `https://cdn.nimiq-testnet.com/v${CORE_VERSION}/nimiq.js`,
-                cdn: `/nimiq/nimiq.js`,
+                cdn: `https://cdn.nimiq-testnet.com/v1.5.8/nimiq.js`,
+                // cdn: `/nimiq/nimiq.js`,
                 network: 'test',
             }
     }
