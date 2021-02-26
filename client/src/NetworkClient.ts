@@ -187,6 +187,10 @@ class NetworkClient {
         return this._eventClient.call('getBalance', addresses);
     }
 
+    public async forgetBalances(addresses: string | string[]): Promise<boolean> {
+        return this._eventClient.call('forgetBalances', addresses);
+    }
+
     public async getAccounts(
         addresses: string | string[],
     ): Promise<Array<ReturnType<import ('@nimiq/core-web').Account["toPlain"]> & {address: string}>> {
