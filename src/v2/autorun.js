@@ -6,12 +6,14 @@ function getConfig() {
     switch (location.host) {
         case 'network.nimiq.com':
             return {
-                cdn: `https://cdn.nimiq.com/v${CORE_VERSION}/nimiq.js`,
+                // cdn: `https://cdn.nimiq.com/v${CORE_VERSION}/nimiq.js`,
+                cdn: '/nimiq/nimiq.js',
                 network: 'main',
             };
         default:
             return {
-                cdn: `https://cdn.nimiq-testnet.com/v${CORE_VERSION}/nimiq.js`,
+                // cdn: `https://cdn.nimiq-testnet.com/v${CORE_VERSION}/nimiq.js`,
+                cdn: '/nimiq/nimiq.js',
                 network: 'test',
             }
     }

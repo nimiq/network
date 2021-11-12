@@ -5,7 +5,7 @@
   "main": "dist/network.umd.js",
   "module": "dist/network.es.js",
   "scripts": {
-    "build": "export _HASH=$(git rev-parse --short=8 HEAD) && rm -rf nimiq-dist/* ||: && yarn rollup -c && sed \"s/src=\\\"autorun.js\\\" type=\\\"module\\\"/src=\\\"network.`echo $_HASH`.js\\\"/\" src/index.html > nimiq-dist/index.html && cp nimiq-dist/index.html nimiq-dist/v2/index.html"
+    "build": "export _HASH=$(git rev-parse --short=8 HEAD) && rm -rf nimiq-dist/* ||: && yarn rollup -c && sed \"s/src=\\\"autorun.js\\\" type=\\\"module\\\"/src=\\\"network.`echo $_HASH`.js\\\"/\" src/index.html > nimiq-dist/index.html && cp nimiq-dist/index.html nimiq-dist/v2/index.html && cp -r nimiq nimiq-dist/nimiq"
   },
   "files": [
     "dist"
