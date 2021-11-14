@@ -27,7 +27,7 @@ export class Network extends NanoApi {
         this._eventServer.onRequest('getGenesisVestingContracts', (state, modern) => this.getGenesisVestingContracts(modern));
         this._eventServer.onRequest('removeTxFromMempool', (state, arg) => this.removeTxFromMempool(arg));
         this._eventServer.onRequest('getPeerAddresses', (state) => this.getPeerAddresses());
-        this._eventServer.onRequest('resetConsensus', (state) => this._client.resetConsensus());
+        this._eventServer.onRequest('resetConsensus', (state) => this.client.resetConsensus());
 
         // Modern
         this._eventServer.onRequest('sendTransaction', (state, tx) => this.sendTransaction(tx));
