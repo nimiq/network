@@ -15,6 +15,8 @@
 
     <p>Balance: <span id="balance">-</span> NIM <button id="update-balance">Update</button></p>
 
+    <button id="reconnect">Reconnect</button>
+    <button id="disconnect">Disconnect</button>
 
     <script>
         NetworkClient = NetworkClient.NetworkClient;
@@ -40,6 +42,10 @@
             client.on(NetworkClient.Events.PEERS_CHANGED, (peers) => $('#peers').textContent = peers);
 
             client.on(NetworkClient.Events.HEAD_CHANGE, (head) => $('#head').textContent = head.height);
+
+            $('#disconnect').addEventListener('click', () => client.disconnect());
+            $('#reconnect').addEventListener('click', () => client.connect());
+            
 
             $('#update-balance').addEventListener('click', () => client
                 .getBalance('NQ02 YP68 BA76 0KR3 QY9C SF0K LP8Q THB6 LTKU')

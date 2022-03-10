@@ -171,6 +171,10 @@ class NetworkClient {
         return this._eventClient.call('connect');
     }
 
+    public async disconnect(reason?: string): Promise<boolean> {
+        return this._eventClient.call('disconnect', reason);
+    }
+
     public async relayTransaction(txObj: PlainTransaction): Promise<object> {
         return this._eventClient.call('relayTransaction', txObj);
     }
