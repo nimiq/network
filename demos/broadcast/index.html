@@ -43,14 +43,19 @@
 
             client.on(NetworkClient.Events.HEAD_CHANGE, (head) => $('#head').textContent = head.height);
 
-            $('#disconnect').addEventListener('click', () => client.disconnect());
-            $('#reconnect').addEventListener('click', () => client.connect());
-            
+            $('#disconnect').addEventListener('click', async () => {
+                await client.disconnect();
+                console.log('disconnected');
+            });
+            $('#reconnect').addEventListener('click', async () => {
+                await client.connect();
+                console.log('reconnected');
+            });
 
-            $('#update-balance').addEventListener('click', () => client
-                .getBalance('NQ02 YP68 BA76 0KR3 QY9C SF0K LP8Q THB6 LTKU')
-                .then(balances => $('#balance').textContent = balances.get('NQ02 YP68 BA76 0KR3 QY9C SF0K LP8Q THB6 LTKU'))
-            );
+            $('#update-balance').addEventListener('click', async () => {
+                const balances = await client.getBalance('NQ02 YP68 BA76 0KR3 QY9C SF0K LP8Q THB6 LTKU');
+                $('#balance').textContent = balances.get('NQ02 YP68 BA76 0KR3 QY9C SF0K LP8Q THB6 LTKU');
+            });
         }
 
         main();
