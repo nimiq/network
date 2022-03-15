@@ -57,10 +57,11 @@ export type PlainAddressInfo = {
 // tslint:enable:interface-over-type-literal
 
 class NetworkClient {
-    public static readonly DEFAULT_ENDPOINT =
-        window.location.origin.endsWith('nimiq.com')
+    public static get DEFAULT_ENDPOINT() {
+        return window.location.origin.endsWith('nimiq.com')
             ? 'https://network.nimiq.com'
             : 'https://network.nimiq-testnet.com';
+    }
 
     public static createInstance(endPoint: string = NetworkClient.DEFAULT_ENDPOINT) {
         if (NetworkClient._instance) throw new Error('NetworkClient already instantiated.');
@@ -100,7 +101,7 @@ class NetworkClient {
     private $iframe!: HTMLIFrameElement;
     private _initializationPromise?: Promise<void>;
     private _apiLoadingState: 'not-started' | 'ready' | 'failed' = 'not-started';
-    private _consensusState: 'connecting' | 'syncing' | 'established' | 'lost' = 'syncing';
+    private _consensusState: 'connecting' | 'syncing' | 'established' | 'lost' = 'syncing';
     private _peerCount: number = 0;
     private _headInfo: { height: number, globalHashrate: number } = { height: 0, globalHashrate: 0 };
     private _balances: Map<string, number> = new Map<string, number>();
